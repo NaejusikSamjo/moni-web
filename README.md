@@ -1,5 +1,5 @@
 # moistock — 모니(moni) 프론트엔드
-
+수정필요
 > 초보 투자자를 위한 모의 투자 앱 프론트엔드  
 > PWA 기반 모바일 전용 앱 (홈 화면 추가 방식)
 
@@ -186,6 +186,5 @@ NEXT_PUBLIC_SITE_URL=https://moni.app            # 프로덕션 도메인 (robot
 api-gateway   :8080   (단일 진입점)
 user-service  :19090  (인증, 성향, 관심종목)
 ```
-
 
 백엔드 레포: [moni](../moni)
