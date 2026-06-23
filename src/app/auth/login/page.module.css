@@ -1,0 +1,192 @@
+.page {
+  height: 100dvh;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 회원가입과 동일한 헤더 구조 */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 24px 24px;
+}
+
+.stepTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.stepDesc {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin-bottom: 32px;
+}
+
+/* 소셜 버튼 */
+.socialButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.kakaoBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  background: #FEE500;
+  color: #3A1D1D;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.kakaoBtn:hover { background: #F5DB00; }
+.kakaoBtn:disabled { opacity: 0.6; pointer-events: none; }
+
+.googleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  background: white;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+.googleBtn:hover { border-color: var(--color-text-muted); }
+.googleBtn:disabled { opacity: 0.6; pointer-events: none; }
+
+/* 구분선 */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-light);
+}
+
+.dividerText {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* 폼 */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.input {
+  height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  transition: border-color var(--transition-fast);
+  width: 100%;
+}
+.input:focus { border-color: var(--color-primary); background: white; }
+.input::placeholder { color: var(--color-text-muted); }
+
+.inputWrap {
+  position: relative;
+}
+
+.inputWrap .input {
+  padding-right: 48px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+}
+
+.errorBox {
+  padding: 12px 16px;
+  background: var(--color-danger-pale, #fff0f0);
+  border: 1px solid var(--color-danger, #ff4d4f);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  color: var(--color-danger, #ff4d4f);
+  font-weight: 500;
+}
+
+/* 하단 고정 */
+.bottom {
+  padding: 16px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.signupRow {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.signupLink {
+  font-weight: 700;
+  color: var(--color-primary);
+}

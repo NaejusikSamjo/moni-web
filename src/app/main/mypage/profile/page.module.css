@@ -1,0 +1,121 @@
+.page {
+  background: var(--color-surface);
+  min-height: 100dvh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  color: var(--color-text-primary);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.headerSpacer {
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.errorBox {
+  background: var(--color-danger-pale);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(224, 80, 80, 0.2);
+}
+
+.successBox {
+  background: var(--color-primary-pale);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(61, 122, 79, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.labelOptional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 15px;
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast);
+}
+.input:focus {
+  border-color: var(--color-primary);
+}
+.input:disabled {
+  opacity: 0.6;
+  background: var(--color-bg);
+}
+
+.emailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.emailLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.emailValue {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}

@@ -1,0 +1,133 @@
+/* app-shell 위를 완전히 덮는 오버레이 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #ffffff 0%, #f0f9f2 60%, #e4f2e8 100%);
+  padding: 48px 24px;
+  overflow-y: auto;
+}
+
+.inner {
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  color: #3d7a4f;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #1a2e1a;
+  line-height: 1.35;
+}
+
+.desc {
+  font-size: 14px;
+  color: #4a6150;
+  line-height: 1.75;
+}
+
+.installBtn {
+  width: 100%;
+  height: 52px;
+  border-radius: 9999px;
+  background: #3d7a4f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 16px rgba(61, 122, 79, 0.3);
+  transition: background 150ms ease;
+}
+
+.installBtn:hover {
+  background: #2e5e3c;
+}
+
+.successMsg {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3d7a4f;
+}
+
+.guideWrap {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  border: 1px solid #dff0e4;
+  overflow: hidden;
+}
+
+.guideSection {
+  padding: 18px 20px;
+}
+
+.sectionLabel {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #3d7a4f;
+  margin-bottom: 14px;
+}
+
+.divider {
+  height: 1px;
+  background: #e4f2e8;
+  margin: 0 20px;
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #4a6150;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #3d7a4f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}

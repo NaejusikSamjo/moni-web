@@ -1,0 +1,33 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+}
+
+.titleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}

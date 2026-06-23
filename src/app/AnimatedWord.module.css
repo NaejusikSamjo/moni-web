@@ -1,0 +1,26 @@
+/* 단어 전체가 하나의 overflow clip 컨테이너 */
+.wordWrap {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.2;
+  padding: 0.08em 0.04em;
+  margin: -0.08em -0.04em;
+}
+
+/* 각 글자 — 아래서 위로 슬라이드 인 */
+.char {
+  display: inline-block;
+  animation: charIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes charIn {
+  from {
+    opacity: 0;
+    transform: translateY(115%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

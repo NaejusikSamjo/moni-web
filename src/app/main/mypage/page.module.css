@@ -1,0 +1,200 @@
+/* background/min-height → globals .app-page */
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+/* Profile */
+.profileCard {
+  padding: 8px 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.profileName {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+}
+
+.profileEmail {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.providerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+}
+
+.providerBadge[data-provider="KAKAO"] {
+  background: #fee500;
+  color: #391b1b;
+}
+
+.providerBadge[data-provider="GOOGLE"] {
+  background: #f1f3f4;
+  color: #444;
+}
+
+.providerBadge[data-provider="default"] {
+  background: var(--color-primary-pale);
+  color: var(--color-primary-dark);
+}
+
+.joinDate {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Asset summary */
+.assetSummary {
+  margin: 0 16px 16px;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border-light);
+}
+
+.assetItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.assetLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.assetValue {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.assetDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-border-light);
+}
+
+/* Menu — border-top 제거: assetSummaryUnavail의 border-bottom이 구분선 역할 */
+.menuSection {
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  transition: background var(--transition-fast);
+}
+.menuItem:hover { background: var(--color-bg); }
+
+.menuIconWrap {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary-pale);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menuLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Logout */
+.logoutSection {
+  margin: 20px 16px;
+  text-align: center;
+}
+
+.logoutBtn {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  display: inline-block;
+  transition: all var(--transition-fast);
+}
+.logoutBtn:hover {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.assetSummaryUnavail {
+  padding: 0;
+}
+
+.skeletonAvatar {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-xl);
+  flex-shrink: 0;
+}
+
+.skeletonName {
+  height: 18px;
+  width: 80px;
+  margin-bottom: 8px;
+}
+
+.skeletonEmail {
+  height: 14px;
+  width: 150px;
+}

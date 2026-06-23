@@ -1,0 +1,355 @@
+/* ── topBar (sticky) ── */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  padding: 12px 16px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.iconBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── 피드 편집 토글 ── */
+.editToggleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.editToggleWrap:hover {
+  background: var(--color-surface-2);
+}
+
+.editToggleLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.switchWrap {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switchInput {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.switchSlider {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  transition: background 0.22s ease;
+  cursor: pointer;
+}
+
+.switchSlider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.22s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+
+.switchInput:checked + .switchSlider {
+  background: var(--color-primary);
+}
+
+.switchInput:checked + .switchSlider::before {
+  transform: translateX(18px);
+}
+
+/* ── 인사말 ── */
+.greeting {
+  padding: 8px 20px 20px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.greetingName {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-decoration-color: var(--color-primary);
+  text-underline-offset: 5px;
+  text-decoration-thickness: 2px;
+}
+
+.greetingNim {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.planBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+
+.planBadge[data-plan="free"] {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.planBadge[data-plan="ai-plus"] {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+}
+
+.greetingSub {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-bottom: 16px;
+}
+
+/* ── 피드 설정 카드 ── */
+.feedCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary-pale);
+  border-radius: var(--radius-lg);
+  padding: 14px 14px 14px 16px;
+  transition: background var(--transition-fast);
+}
+
+.feedCard:hover {
+  background: var(--color-surface-3);
+}
+
+.feedCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 2px;
+}
+
+.feedCardDesc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.feedCardArrow {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ── 피드 섹션 ── */
+.feedSection {
+  animation: feedEnter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.feedSectionExit {
+  animation: feedExit 0.25s ease both;
+  pointer-events: none;
+}
+
+@keyframes feedEnter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes feedExit {
+  from { opacity: 1; transform: translateY(0); max-height: 200px; }
+  to   { opacity: 0; transform: translateY(-8px); max-height: 0; }
+}
+
+@keyframes editExit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes actionsEnter {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes actionsExit {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(8px); }
+}
+
+/* ── 섹션 헤더 (항상 표시) ── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px 0;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: -0.01em;
+}
+
+.editBarActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  animation: actionsEnter 0.18s ease both;
+}
+
+.editActionsExit {
+  animation: actionsExit 0.22s ease both;
+  pointer-events: none;
+}
+
+.editBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.editBtn:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.editBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.editBtnRemove:hover:not(:disabled) {
+  background: var(--color-danger-pale);
+  color: var(--color-danger);
+}
+
+/* ── 숨겨진 섹션 ── */
+.hiddenWrap {
+  padding: 16px 20px 8px;
+  animation: feedEnter 0.25s ease both;
+}
+
+.hiddenWrapExit {
+  animation: editExit 0.22s ease both;
+  pointer-events: none;
+}
+
+.hiddenLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hiddenList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hiddenItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+  font-size: 14px;
+}
+
+.hiddenItem:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-pale);
+}
+
+.hiddenItemTitle {
+  font-weight: 600;
+}
+
+/* ── Skeleton ── */
+.skeletonName {
+  height: 32px;
+  width: 180px;
+  margin-bottom: 8px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.4s ease infinite;
+}
+
+.skeletonSub {
+  height: 16px;
+  width: 120px;
+  margin-bottom: 16px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.4s ease infinite 0.1s;
+}
+
+.skeletonCard {
+  height: 58px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  animation: shimmer 1.4s ease infinite 0.2s;
+}
+
+@keyframes shimmer {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.45; }
+  100% { opacity: 1; }
+}
+
+.bottomPad {
+  height: 12px;
+}
