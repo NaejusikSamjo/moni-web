@@ -182,7 +182,7 @@ NEXT_PUBLIC_SITE_URL=https://moni.app            # 프로덕션 도메인 (robot
 ## 백엔드 연동
 
 ```
-api-gateway   :8080   (단일 진입점)
+api-gateway   :8080   (단일)
 user-service  :19090  (인증, 성향, 관심종목)
 ```
 
