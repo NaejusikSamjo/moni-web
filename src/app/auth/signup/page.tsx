@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { RiKakaoTalkFill, RiGoogleLine, RiArrowLeftLine, RiArrowRightLine } from "react-icons/ri";
 import { Button } from "@/shared/ui";
 import { authApi } from "@/features/auth/api/authApi";
+import { userApi } from "@/features/auth/api/userApi";
 import { ApiException } from "@/shared/api/types";
 import {
   generateCodeVerifier,
@@ -108,9 +109,9 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      await authApi.saveTendency({ score: surveyScore });
+      await userApi.saveTendency({ score: surveyScore });
       if (selectedInterests.size > 0) {
-        await authApi.saveInterests({ categories: [...selectedInterests] });
+        await userApi.saveInterests({ categories: [...selectedInterests] });
       }
       await refreshUser();
       router.push("/main/dashboard");

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { UserResponse } from "@/entities/user";
 import { authApi } from "@/features/auth/api/authApi";
+import { userApi } from "@/features/auth/api/userApi";
 import { clearTokens, hasTokens } from "@/shared/lib/token";
 
 interface AuthContextType {
@@ -25,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const me = await authApi.getMe();
+      const me = await userApi.getMe();
       setUser(me);
     } catch {
       setUser(null);

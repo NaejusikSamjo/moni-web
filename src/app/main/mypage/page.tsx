@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { RiUser3Line, RiBarChartLine, RiBankCardLine, RiQuestionLine, RiArrowRightSLine, RiGoogleLine, RiSettings3Line } from "react-icons/ri";
 import { RiKakaoTalkFill } from "react-icons/ri";
-import { useAuth, authApi } from "@/features/auth";
+import { useAuth, userApi } from "@/features/auth";
 import { Badge } from "@/shared/ui";
 import { Skeleton } from "@/shared/ui";
 import { ServiceUnavailable } from "@/shared/ui";
@@ -24,7 +24,7 @@ export default function MyPage() {
   const [tendencyLabel, setTendencyLabel] = useState<string | null>(null);
 
   useEffect(() => {
-    authApi.getTendency()
+    userApi.getTendency()
       .then((res) => setTendencyLabel(TENDENCY_LABEL[res.type] ?? "설문 완료"))
       .catch(() => setTendencyLabel(null));
   }, []);

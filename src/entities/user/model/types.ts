@@ -1,4 +1,4 @@
-export type UserRole = "USER" | "ADMIN";
+export type UserRole = "USER";
 export type UserStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
 export type TendencyType = "AGGRESSIVE" | "ACTIVE" | "NEUTRAL" | "STABLE" | "SAFE";
 export type OAuthProvider = "GOOGLE" | "KAKAO";

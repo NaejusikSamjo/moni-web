@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
+import { userApi } from "@/features/auth/api/userApi";
 import { useAuth } from "@/features/auth";
 import { clearPendingOAuth, getPendingOAuth } from "@/features/auth/lib/pkce";
 import type { OAuthProvider } from "@/entities/user";
@@ -44,7 +45,7 @@ function CallbackContent() {
       .then(async () => {
         await refreshUser();
         try {
-          await authApi.getTendency();
+          await userApi.getTendency();
           router.replace("/main/dashboard");
         } catch {
           router.replace("/main/mypage/survey");

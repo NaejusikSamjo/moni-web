@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RiArrowLeftLine } from "react-icons/ri";
 import { Button } from "@/shared/ui";
-import { authApi } from "@/features/auth/api/authApi";
+import { userApi } from "@/features/auth/api/userApi";
 import { useAuth, TendencySurvey } from "@/features/auth";
 import { ApiException } from "@/shared/api/types";
 import styles from "./page.module.css";
@@ -35,9 +35,9 @@ export default function SurveyPage() {
     setError(null);
     setLoading(true);
     try {
-      await authApi.saveTendency({ score: surveyScore });
+      await userApi.saveTendency({ score: surveyScore });
       if (selectedInterests.size > 0) {
-        await authApi.saveInterests({ categories: [...selectedInterests] });
+        await userApi.saveInterests({ categories: [...selectedInterests] });
       }
       await refreshUser();
       router.push("/main/mypage");

@@ -17,8 +17,12 @@ const navItems = [
   { href: "/main/mypage",     label: "마이",    Icon: RiUser3Line,     IconActive: RiUser3Fill },
 ];
 
+const HIDE_PATHS = ["/main/mypage/profile"];
+
 export function BottomNav() {
   const pathname = usePathname();
+
+  if (HIDE_PATHS.some((p) => pathname.startsWith(p))) return null;
 
   return (
     <nav className={styles.nav}>

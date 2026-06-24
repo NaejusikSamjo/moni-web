@@ -57,5 +57,9 @@ export interface UserUpdateRequest {
   name?: string;
   nickname?: string;
   phone?: string;
-  password?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }

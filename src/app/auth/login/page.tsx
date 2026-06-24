@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { RiKakaoTalkFill, RiGoogleLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine } from "react-icons/ri";
 import { Button } from "@/shared/ui";
 import { authApi } from "@/features/auth/api/authApi";
+import { userApi } from "@/features/auth/api/userApi";
 import { ApiException } from "@/shared/api/types";
 import {
   generateCodeVerifier,
@@ -45,7 +46,7 @@ export default function LoginPage() {
       await authApi.login({ email, password });
       await refreshUser();
       try {
-        await authApi.getTendency();
+        await userApi.getTendency();
         router.push("/main/dashboard");
       } catch {
         router.push("/main/mypage/survey");
