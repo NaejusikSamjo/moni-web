@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RiCloseCircleFill } from "react-icons/ri";
 import styles from "./page.module.css";
 
-export default function PaymentFailPage() {
+function PaymentFailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message") ?? "카드 등록에 실패했습니다.";
@@ -18,5 +19,13 @@ export default function PaymentFailPage() {
         돌아가기
       </button>
     </div>
+  );
+}
+
+export default function PaymentFailPage() {
+  return (
+    <Suspense>
+      <PaymentFailContent />
+    </Suspense>
   );
 }

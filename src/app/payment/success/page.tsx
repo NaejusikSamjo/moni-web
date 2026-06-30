@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { RiLoaderLine, RiCheckboxCircleFill, RiCloseCircleFill } from "react-icons/ri";
 import { paymentApi } from "@/entities/payment";
 import { ApiException } from "@/shared/api/types";
 import styles from "./page.module.css";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const called = useRef(false);
@@ -66,5 +66,13 @@ export default function PaymentSuccessPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
