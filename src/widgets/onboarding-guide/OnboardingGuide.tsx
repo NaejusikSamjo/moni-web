@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { RiCloseLine } from "react-icons/ri";
 import styles from "./OnboardingGuide.module.css";
 
-const STORAGE_KEY = "moni_onboarding_v2";
+const STORAGE_KEY = "moni_onboarding_v3";
 
-// 단일 알약 4개 탭 — 각 탭 중심 위치
-const NAV_POSITIONS = ["14%", "38%", "62%", "86%"];
+// 5개 탭 균등 배치 — 각 탭 중심 위치
+const NAV_POSITIONS = ["10%", "30%", "50%", "70%", "90%"];
 
 const STEPS = [
   {
@@ -22,11 +22,16 @@ const STEPS = [
   },
   {
     navIndex: 2,
+    title: "관심종목",
+    message: "마음에 드는 종목을\n하트로 즐겨찾기 해보세요",
+  },
+  {
+    navIndex: 3,
     title: "포트폴리오",
     message: "보유중인 모의 주식항목을\n포트폴리오로 한눈에 볼 수 있어요",
   },
   {
-    navIndex: 3,
+    navIndex: 4,
     title: "이제 둘러볼까요?",
     message: "알림 설정과 내 정보도\n마이 탭에서 관리할 수 있어요",
   },

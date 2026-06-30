@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { STOCK_LOGO_BASE_URL } from "@/shared/config/env";
+import { useState, type CSSProperties } from "react";
 import styles from "./StockLogo.module.css";
 
 interface StockLogoProps {
@@ -11,28 +10,32 @@ interface StockLogoProps {
 }
 
 export function StockLogo({ code, name, size = 40 }: StockLogoProps) {
-  const [error, setError] = useState(false);
+  const [showAvatar, setShowAvatar] = useState(false);
 
-  if (STOCK_LOGO_BASE_URL && !error) {
+  if (showAvatar) {
     return (
-      <img
-        src={`${STOCK_LOGO_BASE_URL}${code}.svg`}
-        alt={name}
-        width={size}
-        height={size}
-        style={{ borderRadius: "50%", objectFit: "contain" }}
-        onError={() => setError(true)}
-      />
+      <div
+        className={styles.avatar}
+        style={{ "--logo-size": `${size}px`, "--logo-font": `${size * 0.38}px` } as CSSProperties}
+        aria-label={name}
+      >
+        {name[0]}
+      </div>
     );
   }
 
   return (
-    <div
-      className={styles.avatar}
-      style={{ width: size, height: size, fontSize: size * 0.38 }}
-      aria-label={name}
-    >
-      {name[0]}
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/api/stock-logo/${code}`}
+      alt={name}
+      width={size}
+      height={size}
+      className={styles.img}
+      onLoad={(e) => {
+        if (e.currentTarget.naturalWidth <= 1) setShowAvatar(true);
+      }}
+      onError={() => setShowAvatar(true)}
+    />
   );
 }

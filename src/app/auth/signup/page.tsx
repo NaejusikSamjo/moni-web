@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { RiKakaoTalkFill, RiGoogleLine, RiArrowLeftLine, RiArrowRightLine } from "react-icons/ri";
 import { Button } from "@/shared/ui";
 import { authApi } from "@/features/auth/api/authApi";
-import { userApi } from "@/features/auth/api/userApi";
+import { userApi } from "@/entities/user";
 import { ApiException } from "@/shared/api/types";
 import {
   generateCodeVerifier,

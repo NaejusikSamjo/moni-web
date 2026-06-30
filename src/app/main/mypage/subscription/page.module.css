@@ -1,0 +1,270 @@
+.page {
+  min-height: 100dvh;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px 40px;
+}
+
+/* 구독 상태 섹션 */
+.statusCard {
+  padding: 20px 0 24px;
+}
+
+.skelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 0;
+}
+
+/* 미구독 */
+.noSubscription {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.noSubTitle {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.noSubDesc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-primary);
+}
+
+.pricePer {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* 구독 중 */
+.activeSubscription {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.statusBadge[data-status="ACTIVE"] {
+  background: var(--color-primary-pale);
+  color: var(--color-primary);
+}
+
+.statusBadge[data-status="CANCELLING"] {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.statusBadge[data-status="CANCELLED"] {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.planName {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-top: -4px;
+}
+
+.infoRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.infoIcon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.cancellingNote {
+  color: #f97316;
+  font-weight: 600;
+}
+
+/* 결제 내역 */
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.skelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 12px;
+}
+
+.skelLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 12px;
+}
+
+
+.historyLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyTypeBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-pale);
+  color: var(--color-primary);
+  width: fit-content;
+}
+
+.historyDate {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.historyAmount {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+
+.empty {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* 공통 */
+.errorBox {
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-danger, #ef4444);
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spinnerInline {
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 취소 바텀시트 */
+.cancelDesc {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-top: -4px;
+}
+
+.cancelActions {
+  display: flex;
+  gap: 10px;
+}

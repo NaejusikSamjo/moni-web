@@ -8,3 +8,12 @@ export class ApiException extends Error {
     this.name = "ApiException";
   }
 }
+
+export interface PageRes<T> {
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  isLast: boolean;
+}

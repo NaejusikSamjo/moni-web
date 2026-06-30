@@ -33,6 +33,7 @@ export function TendencySurvey({ onComplete, onResult, loading }: Props) {
   const [result, setResult] = useState<{ score: number; info: TendencyInfo } | null>(null);
 
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const submitRef = useRef<HTMLDivElement | null>(null);
 
   const reveal = (qIndex: number) => {
     if (qIndex === maxVisible - 1 && maxVisible < SURVEY_QUESTIONS.length) {
@@ -67,6 +68,14 @@ export function TendencySurvey({ onComplete, onResult, loading }: Props) {
   );
   const isLast = maxVisible === SURVEY_QUESTIONS.length;
   const canSubmit = isLast && isAllAnswered;
+
+  useEffect(() => {
+    if (canSubmit) {
+      setTimeout(() => {
+        submitRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 120);
+    }
+  }, [canSubmit]);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -125,7 +134,7 @@ export function TendencySurvey({ onComplete, onResult, loading }: Props) {
       ))}
 
       {canSubmit && (
-        <div className={styles.submitWrap}>
+        <div ref={submitRef} className={styles.submitWrap}>
           <Button variant="primary" size="lg" fullWidth onClick={handleSubmit} disabled={loading}>
             {loading ? "저장 중..." : "결과 확인하기"}
           </Button>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RiArrowLeftLine, RiCheckLine } from "react-icons/ri";
-import { Button } from "@/shared/ui";
+import { Button, BottomSheet } from "@/shared/ui";
 import { useAuth, userApi } from "@/features/auth";
 import { ApiException } from "@/shared/api/types";
 import styles from "./page.module.css";
@@ -198,83 +198,72 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {showPasswordModal && (
-        <div className={[styles.overlay, passwordClosing ? styles.overlayClosing : ""].join(" ")}>
-          <div className={[styles.modal, passwordClosing ? styles.modalClosing : ""].join(" ")}>
-            <h2 className={styles.modalTitle}>비밀번호 변경</h2>
-
-            {passwordError && <p className={styles.errorBox}>{passwordError}</p>}
-            {passwordSuccess && (
-              <div className={styles.successBox}>
-                <RiCheckLine size={16} />
-                변경되었습니다
-              </div>
-            )}
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>현재 비밀번호</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="현재 비밀번호"
-                disabled={passwordLoading}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>새 비밀번호</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="8자 이상, 영문/숫자/특수문자 포함"
-                disabled={passwordLoading}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>새 비밀번호 확인</label>
-              <input
-                className={styles.input}
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="새 비밀번호를 다시 입력하세요"
-                disabled={passwordLoading}
-              />
-            </div>
-
-            <div className={styles.modalActions}>
-              <Button variant="secondary" size="md" fullWidth onClick={closePasswordModal}>
-                취소
-              </Button>
-              <Button variant="primary" size="md" fullWidth onClick={handlePasswordChange} disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
-                {passwordLoading ? "변경 중..." : "변경하기"}
-              </Button>
-            </div>
+      <BottomSheet open={showPasswordModal} closing={passwordClosing} onClose={closePasswordModal} title="비밀번호 변경">
+        {passwordError && <p className={styles.errorBox}>{passwordError}</p>}
+        {passwordSuccess && (
+          <div className={styles.successBox}>
+            <RiCheckLine size={16} />
+            변경되었습니다
           </div>
-        </div>
-      )}
+        )}
 
-      {showWithdrawConfirm && (
-        <div className={[styles.overlay, withdrawClosing ? styles.overlayClosing : ""].join(" ")}>
-          <div className={[styles.modal, withdrawClosing ? styles.modalClosing : ""].join(" ")}>
-            <h2 className={styles.modalTitle}>정말 탈퇴하시겠어요?</h2>
-            <p className={styles.modalDesc}>탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</p>
-            <div className={styles.modalActions}>
-              <Button variant="secondary" size="md" fullWidth onClick={closeWithdrawModal} disabled={withdrawLoading}>
-                취소
-              </Button>
-              <Button variant="danger" size="md" fullWidth onClick={handleWithdraw} disabled={withdrawLoading}>
-                {withdrawLoading ? "처리 중..." : "탈퇴하기"}
-              </Button>
-            </div>
-          </div>
+        <div className={styles.fieldGroup}>
+          <label className={styles.label}>현재 비밀번호</label>
+          <input
+            className={styles.input}
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="현재 비밀번호"
+            disabled={passwordLoading}
+          />
         </div>
-      )}
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.label}>새 비밀번호</label>
+          <input
+            className={styles.input}
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="8자 이상, 영문/숫자/특수문자 포함"
+            disabled={passwordLoading}
+          />
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <label className={styles.label}>새 비밀번호 확인</label>
+          <input
+            className={styles.input}
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="새 비밀번호를 다시 입력하세요"
+            disabled={passwordLoading}
+          />
+        </div>
+
+        <div className={styles.modalActions}>
+          <Button variant="secondary" size="lg" fullWidth onClick={closePasswordModal}>
+            취소
+          </Button>
+          <Button variant="primary" size="lg" fullWidth onClick={handlePasswordChange} disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}>
+            {passwordLoading ? "변경 중..." : "변경하기"}
+          </Button>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet open={showWithdrawConfirm} closing={withdrawClosing} onClose={closeWithdrawModal} title="정말 탈퇴하시겠어요?">
+        <p className={styles.modalDesc}>탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</p>
+        <div className={styles.modalActions}>
+          <Button variant="secondary" size="lg" fullWidth onClick={closeWithdrawModal} disabled={withdrawLoading}>
+            취소
+          </Button>
+          <Button variant="danger" size="lg" fullWidth onClick={handleWithdraw} disabled={withdrawLoading}>
+            {withdrawLoading ? "처리 중..." : "탈퇴하기"}
+          </Button>
+        </div>
+      </BottomSheet>
     </>
   );
 }

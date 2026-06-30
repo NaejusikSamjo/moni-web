@@ -5,8 +5,11 @@ import type {
   InterestRequest,
   UserUpdateRequest,
   ChangePasswordRequest,
-} from "@/features/auth/model/types";
-import type { UserResponse, TendencyResponse, InterestResponse, WatchlistResponse } from "@/entities/user";
+  UserResponse,
+  TendencyResponse,
+  InterestResponse,
+  WatchlistResponse,
+} from "@/entities/user/model/types";
 
 export const userApi = {
   getMe: (): Promise<UserResponse> =>

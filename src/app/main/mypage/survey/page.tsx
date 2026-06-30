@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RiArrowLeftLine } from "react-icons/ri";
-import { Button } from "@/shared/ui";
-import { userApi } from "@/features/auth/api/userApi";
+import { RiArrowLeftLine, RiCheckboxCircleFill } from "react-icons/ri";
+import { Button, BottomSheet } from "@/shared/ui";
+import { userApi } from "@/entities/user";
 import { useAuth, TendencySurvey } from "@/features/auth";
 import { ApiException } from "@/shared/api/types";
 import styles from "./page.module.css";
@@ -21,6 +21,9 @@ export default function SurveyPage() {
   const [selectedInterests, setSelectedInterests] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
+  const [showSkipWarning, setShowSkipWarning] = useState(false);
+  const [skipClosing, setSkipClosing] = useState(false);
 
   const toggleInterest = (item: string) => {
     setSelectedInterests((prev) => {
@@ -30,17 +33,17 @@ export default function SurveyPage() {
     });
   };
 
-  const handleFinish = async () => {
+  const handleFinish = async (skipInterests = false) => {
     if (surveyScore === null) return;
     setError(null);
     setLoading(true);
     try {
       await userApi.saveTendency({ score: surveyScore });
-      if (selectedInterests.size > 0) {
+      if (!skipInterests && selectedInterests.size > 0) {
         await userApi.saveInterests({ categories: [...selectedInterests] });
       }
       await refreshUser();
-      router.push("/main/mypage");
+      setShowComplete(true);
     } catch (err) {
       if (err instanceof ApiException) {
         setError(err.message);
@@ -51,6 +54,39 @@ export default function SurveyPage() {
       setLoading(false);
     }
   };
+
+  const closeSkipWarning = () => {
+    setSkipClosing(true);
+    setTimeout(() => {
+      setSkipClosing(false);
+      setShowSkipWarning(false);
+    }, 280);
+  };
+
+  const handleSkipConfirm = () => {
+    closeSkipWarning();
+    setTimeout(() => handleFinish(true), 300);
+  };
+
+  if (showComplete) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.completePage}>
+          <RiCheckboxCircleFill size={64} className={styles.completeIcon} />
+          <h1 className={styles.completeTitle}>준비가 완료되었어요!</h1>
+          <p className={styles.completeDesc}>시작해볼까요?</p>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => router.push("/main/dashboard")}
+          >
+            시작하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -109,14 +145,14 @@ export default function SurveyPage() {
               variant="primary"
               size="lg"
               fullWidth
-              onClick={handleFinish}
+              onClick={() => handleFinish(false)}
               disabled={loading}
             >
               {loading ? "저장 중..." : "완료"}
             </Button>
             <button
               className={styles.skipBtn}
-              onClick={handleFinish}
+              onClick={() => setShowSkipWarning(true)}
               disabled={loading}
             >
               건너뛰기
@@ -124,6 +160,22 @@ export default function SurveyPage() {
           </div>
         </div>
       )}
+
+      <BottomSheet
+        open={showSkipWarning}
+        closing={skipClosing}
+        onClose={closeSkipWarning}
+        title="지금 멈추시면 나중에 추천을 받지 못할 수도 있어요!"
+      >
+        <div className={styles.skipActions}>
+          <Button variant="secondary" size="lg" fullWidth onClick={handleSkipConfirm}>
+            그래도 건너뛰기
+          </Button>
+          <Button variant="primary" size="lg" fullWidth onClick={closeSkipWarning}>
+            취소하기
+          </Button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
