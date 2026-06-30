@@ -1,0 +1,259 @@
+.page {
+  background: var(--color-surface);
+  min-height: 100dvh;
+  padding-bottom: 32px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 16px 16px;
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Total */
+.totalCard {
+  padding: 4px 20px 24px;
+}
+
+.totalLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.totalValue {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+}
+
+/* Section */
+.section {
+  padding: 0 16px 24px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+/* Holdings */
+.holdingList {
+  display: flex;
+  flex-direction: column;
+}
+
+.holdingItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.holdingInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.holdingName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.holdingMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.marketBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.holdingRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.holdingValue {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 3px;
+}
+
+.holdingRate {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.up { color: var(--color-up); }
+.down { color: var(--color-down); }
+
+/* Trades */
+.tradeList {
+  display: flex;
+  flex-direction: column;
+}
+
+.tradeItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  gap: 12px;
+}
+.tradeItem + .tradeItem {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.tradeLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tradeBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.tradeBuy {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-up);
+}
+
+.tradeSell {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-down);
+}
+
+.tradeTicker {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.tradeDate {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.tradeRight {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tradeAmount {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.tradeMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Skeleton */
+.skelRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.skelInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* Loading indicator */
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 0 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+.empty {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.bottomPad { height: 20px; }

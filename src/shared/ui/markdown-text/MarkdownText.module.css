@@ -1,0 +1,7 @@
+.para {
+  margin: 0;
+}
+
+.para + .para {
+  margin-top: 10px;
+}

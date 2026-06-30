@@ -160,6 +160,10 @@
   border-radius: var(--radius-lg);
   padding: 14px 14px 14px 16px;
   transition: background var(--transition-fast);
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
 .feedCard:hover {
@@ -352,4 +356,289 @@
 
 .bottomPad {
   height: 12px;
+}
+
+/* ── Section Skeletons ── */
+.skelCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  padding: 16px;
+  margin: 0 16px 4px;
+}
+
+.skelList {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  margin: 0 16px 4px;
+}
+
+.skelHeaderRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.skelCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelVDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--color-border-light);
+  margin: 0 16px;
+  flex-shrink: 0;
+}
+
+.skelPopularRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.skelPopularLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.skelInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.skelThemeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.skelThemeRow:last-child {
+  border-bottom: none;
+}
+
+.skelThemeLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelThemeRight {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+}
+
+
+/* ── Asset section ── */
+.assetCard {
+  display: block;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  padding: 16px;
+  margin: 0 16px 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.assetRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.assetItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.assetLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.assetValue {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.assetDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--color-border-light);
+  margin: 0 16px;
+}
+
+.assetReturnRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+}
+
+.assetReturnLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.assetReturnValue {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+
+/* ── Popular section ── */
+.popularList {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  margin: 0 16px 4px;
+}
+
+.popularItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  transition: background var(--transition-fast);
+}
+.popularItem:hover { background: var(--color-bg); }
+
+.popularLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.popularRank {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.popularInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.popularName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popularMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.popularPriceBlock {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.popularPrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.popularVolume {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+  text-align: right;
+}
+
+
+/* ── Theme section ── */
+.themeList {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  margin: 0 16px 4px;
+}
+
+.themeItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.themeItem:last-child { border-bottom: none; }
+
+.themeInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.themeName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.themeMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.themePriceBlock {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.themeIndex {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 1px;
+}
+
+.themeRate {
+  font-size: 12px;
+  font-weight: 700;
 }

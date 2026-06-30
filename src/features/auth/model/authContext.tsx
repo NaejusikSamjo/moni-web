@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { UserResponse } from "@/entities/user";
 import { authApi } from "@/features/auth/api/authApi";
-import { userApi } from "@/features/auth/api/userApi";
+import { userApi } from "@/entities/user";
 import { clearTokens, hasTokens } from "@/shared/lib/token";
 
 interface AuthContextType {

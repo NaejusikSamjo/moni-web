@@ -1,12 +1,163 @@
+@property --dot-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --bar-width {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --bar-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
 .unavailWrap {
   padding: 8px 20px 16px;
 }
+
+/* Empty / create state */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60dvh;
+  padding: 32px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.createBtn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  letter-spacing: -0.01em;
+}
+.createBtn:hover { opacity: 0.88; }
+.createBtn:disabled { opacity: 0.5; cursor: default; }
 
 .title {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--color-text-primary);
+}
+
+/* ── Skeleton ── */
+.skelSummaryCard {
+  margin: 16px;
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  border: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skelRow {
+  display: flex;
+  align-items: center;
+}
+
+.skelCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--color-border-light);
+  margin: 0 20px;
+  flex-shrink: 0;
+}
+
+.skelTitle {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.skelChartCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skelLegendList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skelLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skelLegendRight {
+  margin-left: auto;
+}
+
+.skelHoldingItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.skelHoldingInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelHoldingRight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
 }
 
 /* Summary */
@@ -19,10 +170,25 @@
   box-shadow: var(--shadow-sm);
 }
 
+.summaryTotalLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.summaryTotalValue {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+}
+
 .summaryRow {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .summaryItem {
@@ -39,15 +205,15 @@
 }
 
 .summaryValue {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
 .summaryDivider {
   width: 1px;
-  height: 40px;
+  height: 36px;
   background: var(--color-border-light);
   margin: 0 20px;
 }
@@ -149,6 +315,62 @@
   border-radius: var(--radius-sm);
 }
 
+/* Donut chart */
+.donutWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chartCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.legendList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--dot-color);
+}
+
+.legendName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legendWeight {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
 /* Holdings */
 .holdingsList {
   background: white;
@@ -167,6 +389,28 @@
 }
 .holdingItem:last-child { border-bottom: none; }
 .holdingItem:hover { background: var(--color-bg); }
+
+.holdingInfo {
+  flex: 1;
+  min-width: 0;
+  margin-left: 10px;
+}
+
+.weightBarWrap {
+  height: 3px;
+  background: var(--color-border-light);
+  border-radius: var(--radius-full);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.weightBar {
+  height: 100%;
+  width: var(--bar-width, 0%);
+  background: var(--bar-color);
+  border-radius: var(--radius-full);
+  transition: width 0.6s ease;
+}
 
 .holdingLeft {
   flex: 1;
@@ -257,3 +501,23 @@
 }
 
 .bottomPad { height: 20px; }
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}

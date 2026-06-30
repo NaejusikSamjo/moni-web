@@ -2,8 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { RiLoaderLine } from "react-icons/ri";
 import { authApi } from "@/features/auth/api/authApi";
-import { userApi } from "@/features/auth/api/userApi";
+import { userApi } from "@/entities/user";
 import { useAuth } from "@/features/auth";
 import { clearPendingOAuth, getPendingOAuth } from "@/features/auth/lib/pkce";
 import type { OAuthProvider } from "@/entities/user";
@@ -67,8 +68,10 @@ function CallbackContent() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.spinner} />
-      <p className={styles.loadingText}>로그인 중...</p>
+      <div className={styles.loadingWrap}>
+        <RiLoaderLine size={20} className={styles.spinner} />
+        <p className={styles.loadingText}>로그인 중</p>
+      </div>
     </div>
   );
 }
@@ -78,7 +81,9 @@ export default function CallbackPage() {
     <Suspense
       fallback={
         <div className={styles.page}>
-          <div className={styles.spinner} />
+          <div className={styles.loadingWrap}>
+            <RiLoaderLine size={20} className={styles.spinner} />
+          </div>
         </div>
       }
     >

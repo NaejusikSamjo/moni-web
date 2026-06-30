@@ -39,27 +39,8 @@ export interface SocialLoginRequest {
   codeVerifier: string;
 }
 
-export interface TendencyRequest {
-  score: number;
-}
-
-export interface InterestRequest {
-  categories: string[];
-}
-
 export interface PendingOAuthData {
   provider: string;
   codeVerifier: string;
   state: string;
-}
-
-export interface UserUpdateRequest {
-  name?: string;
-  nickname?: string;
-  phone?: string;
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
 }

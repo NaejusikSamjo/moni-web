@@ -40,6 +40,13 @@ const LICENSES = [
     author: "Microsoft Corporation",
     url: "https://www.typescriptlang.org",
   },
+  {
+    name: "Lightweight Charts",
+    version: "5.2.0",
+    license: "Apache-2.0",
+    author: "TradingView, Inc.",
+    url: "https://tradingview.github.io/lightweight-charts",
+  },
 ];
 
 export default function LicensesPage() {
