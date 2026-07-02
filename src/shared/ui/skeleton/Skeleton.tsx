@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import styles from "./Skeleton.module.css";
 
 interface Props {
@@ -7,15 +8,19 @@ interface Props {
   borderRadius?: number | string;
 }
 
+function toPx(v: number | string): string {
+  return typeof v === "number" ? `${v}px` : v;
+}
+
 export function Skeleton({ className, width, height, borderRadius }: Props) {
   return (
     <div
       className={[styles.skeleton, className ?? ""].join(" ")}
       style={{
-        width: width !== undefined ? (typeof width === "number" ? `${width}px` : width) : undefined,
-        height: height !== undefined ? (typeof height === "number" ? `${height}px` : height) : undefined,
-        borderRadius: borderRadius !== undefined ? (typeof borderRadius === "number" ? `${borderRadius}px` : borderRadius) : undefined,
-      }}
+        ...(width !== undefined && { "--skeleton-width": toPx(width) }),
+        ...(height !== undefined && { "--skeleton-height": toPx(height) }),
+        ...(borderRadius !== undefined && { "--skeleton-radius": toPx(borderRadius) }),
+      } as CSSProperties}
     />
   );
 }

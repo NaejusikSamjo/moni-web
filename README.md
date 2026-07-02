@@ -50,6 +50,7 @@ yarn dev        # http://localhost:3000 (PWA 가드 비활성화)
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080     # 백엔드 API Gateway
+NEXT_PUBLIC_CDN_BASE_URL=https://cdn.moni.my       # 프로필 이미지 CDN
 NEXT_PUBLIC_TOSS_CLIENT_KEY=test_ck_xxxx           # 토스페이먼츠 클라이언트 키
 ```
 
@@ -150,10 +151,10 @@ src/
 
 | 페이지    | 경로                    | 기능                                              | 연동 API                                                                                                                                                                                                         |
 |--------|-----------------------|-------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 홈 대시보드 | `/main/dashboard`     | 자산 요약, 실시간 인기 종목(거래량 Top5), 테마 지수, 피드 편집(순서/숨김) | `GET /api/v1/accounts`, `GET /api/v1/stocks/top-volume`, `GET /api/v1/stocks/themes`                                                                                                                           |
+| 홈 대시보드 | `/main/dashboard`     | 자산 요약, 실시간 인기 종목(거래량 Top5), 테마 지수, 피드 편집(순서/숨김) | `GET /api/v1/assets`, `POST /api/v1/accounts`, `GET /api/v1/stocks/top-volume`, `GET /api/v1/stocks/themes`                                                                                                    |
 | 종목 목록  | `/main/stocks`        | 종목 검색 · 무한 스크롤, 관심종목 토글                         | `GET /api/v1/stocks/search`, `POST/DELETE /api/v1/users/me/watchlist/{ticker}`                                                                                                                                 |
 | 종목 상세  | `/main/stocks/[id]`   | 분봉 차트(1/3/5/10/30/60분), AI 기업이슈 분석, 매수/매도       | `GET /api/v1/stocks/{ticker}`, `GET /api/v1/stocks/{ticker}/chart`, `GET /api/v1/ai/{ticker}/issue-analysis`, `POST /api/v1/ai/{ticker}/issue-analysis`, `POST /api/v1/trades/buy`, `POST /api/v1/trades/sell` |
-| 포트폴리오  | `/main/portfolio`     | 도넛 차트(보유 비율), 수익률, 보유 종목 목록                     | `GET /api/v1/portfolio/assets`, `GET /api/v1/portfolio/holdings`, `GET /api/v1/stocks/{ticker}`                                                                                                                |
+| 포트폴리오  | `/main/portfolio`     | 도넛 차트(보유 비율), 수익률, 보유 종목 목록                     | `GET /api/v1/assets`, `GET /api/v1/assets/holdings`, `GET /api/v1/stocks/{ticker}`                                                                                                                             |
 | 관심 종목  | `/main/watchlist`     | 찜한 종목 목록, 실시간 시세                                | `GET /api/v1/users/me/watchlist`, `GET /api/v1/stocks/{ticker}`                                                                                                                                                |
 | 알림     | `/main/notifications` | UI 구현 완료, 백엔드 연동 준비 중                           | -                                                                                                                                                                                                              |
 
@@ -161,8 +162,8 @@ src/
 
 | 페이지           | 경로                          | 기능                                                 | 연동 API                                                                                                                                             |
 |---------------|-----------------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| 마이 홈          | `/main/mypage`              | 프로필 요약, 자산 현황, 메뉴                                  | `GET /api/v1/users/me`, `GET /api/v1/accounts`                                                                                                     |
-| 프로필 편집        | `/main/mypage/profile`      | 닉네임 수정, 비밀번호 변경, 회원 탈퇴                             | `PUT /api/v1/users/me`, `PUT /api/v1/users/me/password`, `DELETE /api/v1/users/me`                                                                 |
+| 마이 홈          | `/main/mypage`              | 프로필 요약, 자산 현황, 메뉴                                  | `GET /api/v1/users/me`, `GET /api/v1/assets`                                                                                                       |
+| 프로필 편집        | `/main/mypage/profile`      | 닉네임/비밀번호 수정, 통합 회원 전환, 소셜 계정 표시, 회원 탈퇴             | `PATCH /api/v1/users/me`, `POST /api/v1/users/me/password`, `POST /api/v1/users/me/integrate`, `DELETE /api/v1/users/me`                           |
 | 설정            | `/main/mypage/settings`     | 알림 · 마케팅 수신 동의 토글                                  | 로컬 상태 (백엔드 연동 준비 중)                                                                                                                                |
 | 구독 관리         | `/main/mypage/subscription` | 구독 상태 조회, Toss Payments 카드 등록 · 구독 취소 · 재구독, 결제 내역 | `GET /api/v1/payments/subscriptions/status`, `POST /api/v1/payments/subscription`, `DELETE /api/v1/payments/subscriptions`, `GET /api/v1/payments` |
 | 투자 성향 설문      | `/main/mypage/survey`       | 11문항 progressive reveal → 5개 유형 판정                 | `POST /api/v1/users/me/tendency`                                                                                                                   |
@@ -277,5 +278,3 @@ notification-service :19094  (알림)
 payment-service      :19095  (구독/결제)
 ai-service           :19096  (기업 이슈 분석, RAG)
 ```
-
-백엔드 레포: [moni](../moni)

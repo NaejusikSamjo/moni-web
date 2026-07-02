@@ -509,6 +509,11 @@
   letter-spacing: -0.02em;
 }
 
+.assetReturnRate {
+  font-size: 12px;
+  font-weight: 700;
+}
+
 
 /* ── Popular section ── */
 .popularList {

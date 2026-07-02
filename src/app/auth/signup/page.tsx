@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { RiKakaoTalkFill, RiGoogleLine, RiArrowLeftLine, RiArrowRightLine } from "react-icons/ri";
+import { RiKakaoTalkFill, RiGoogleLine, RiArrowLeftLine, RiArrowRightLine, RiLoaderLine, RiCheckboxCircleFill } from "react-icons/ri";
 import { Button } from "@/shared/ui";
 import { authApi } from "@/features/auth/api/authApi";
 import { userApi } from "@/entities/user";
@@ -34,6 +34,7 @@ export default function SignupPage() {
   const [selectedInterests, setSelectedInterests] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
   const [socialLoading, setSocialLoading] = useState<OAuthProvider | null>(null);
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function SignupPage() {
         await userApi.saveInterests({ categories: [...selectedInterests] });
       }
       await refreshUser();
-      router.push("/main/dashboard");
+      setShowComplete(true);
     } catch (err) {
       if (err instanceof ApiException) {
         setError(err.message);
@@ -127,6 +128,21 @@ export default function SignupPage() {
   };
 
   const isBusy = loading || !!socialLoading;
+
+  if (showComplete) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.completePage}>
+          <RiCheckboxCircleFill size={64} className={styles.completeIcon} />
+          <h1 className={styles.completeTitle}>준비가 완료되었어요!</h1>
+          <p className={styles.completeDesc}>시작해볼까요?</p>
+          <Button variant="primary" size="lg" fullWidth onClick={() => router.push("/main/dashboard")}>
+            시작하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -285,7 +301,7 @@ export default function SignupPage() {
               onClick={handleFinish}
               disabled={loading}
             >
-              {loading ? "저장 중..." : "완료"}
+              {loading ? <RiLoaderLine size={18} className={styles.spinner} /> : "완료"}
             </Button>
             <button
               className={styles.skipBtn}

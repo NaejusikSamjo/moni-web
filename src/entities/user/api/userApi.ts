@@ -9,6 +9,7 @@ import type {
   TendencyResponse,
   InterestResponse,
   WatchlistResponse,
+  PresignedUrlResponse,
 } from "@/entities/user/model/types";
 
 export const userApi = {
@@ -27,9 +28,19 @@ export const userApi = {
       body: JSON.stringify(data),
     }),
 
-  deleteAccount: (): Promise<void> =>
+  integrate: (password: string): Promise<void> =>
+    apiRequest("/api/v1/users/me/integrate", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
+
+  deleteAccount: (password?: string): Promise<void> =>
     apiRequest("/api/v1/users/me", {
       method: "DELETE",
+      ...(password !== undefined && {
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      }),
     }),
 
   saveTendency: async (data: TendencyRequest): Promise<TendencyResponse> => {
@@ -66,5 +77,23 @@ export const userApi = {
   removeWatchlist: (stockCode: string): Promise<void> =>
     apiRequest(`/api/v1/users/me/watchlist/${stockCode}`, {
       method: "DELETE",
+    }),
+
+  getPresignedUrl: (extension: string): Promise<PresignedUrlResponse> =>
+    apiRequest(`/api/v1/users/me/profile/presigned-url?extension=${extension}`),
+
+  uploadToS3: async (presignedUrl: string, file: File): Promise<void> => {
+    const res = await fetch(presignedUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
+    if (!res.ok) throw new Error("이미지 업로드에 실패했습니다.");
+  },
+
+  updateProfile: (profile: string | null): Promise<UserResponse> =>
+    apiRequest("/api/v1/users/me/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ profile }),
     }),
 };

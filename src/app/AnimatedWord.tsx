@@ -27,7 +27,7 @@ export function AnimatedWord() {
         <span
           key={`${animKey}-${i}`}
           className={styles.char}
-          style={{ animationDelay: `${i * CHAR_DELAY_MS}ms` } as CSSProperties}
+          style={{ "--char-delay": `${i * CHAR_DELAY_MS}ms` } as CSSProperties}
         >
           {char}
         </span>

@@ -54,7 +54,7 @@ export default function StocksPage() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loadingMore && !isLast) {
+        if (entries[0].isIntersecting && !loading && !loadingMore && !isLast) {
           fetchStocks(keywordRef.current, pageRef.current + 1, true);
         }
       },
@@ -62,7 +62,7 @@ export default function StocksPage() {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchStocks, loadingMore, isLast]);
+  }, [fetchStocks, loading, loadingMore, isLast]);
 
   const handleKeywordChange = (value: string) => {
     setKeyword(value);
@@ -106,16 +106,22 @@ export default function StocksPage() {
         </div>
         <div className={styles.stockCard}>
           {loading ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className={styles.skelRow}>
-                <Skeleton width={40} height={40} borderRadius="50%" />
-                <div className={styles.skelInfo}>
-                  <Skeleton width={90} height={14} />
-                  <Skeleton width={50} height={11} />
+            <>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className={styles.skelRow}>
+                  <Skeleton width={40} height={40} borderRadius="50%" />
+                  <div className={styles.skelInfo}>
+                    <Skeleton width={90} height={14} />
+                    <Skeleton width={50} height={11} />
+                  </div>
+                  <Skeleton width={72} height={15} />
                 </div>
-                <Skeleton width={72} height={15} />
+              ))}
+              <div className={styles.loadingMore}>
+                <RiLoaderLine size={18} className={styles.spinner} />
+                <span>불러오는 중</span>
               </div>
-            ))
+            </>
           ) : stocks.length === 0 ? (
             <p className={styles.empty}>검색 결과가 없습니다</p>
           ) : (

@@ -11,8 +11,15 @@ export interface UserResponse {
   phone: string | null;
   role: UserRole;
   status: UserStatus;
-  provider?: OAuthProvider | null;
+  oauthProvider?: OAuthProvider | null;
+  integrated?: boolean;
+  profile?: string | null;
   createdAt: string;
+}
+
+export interface PresignedUrlResponse {
+  presignedUrl: string;
+  s3Url: string;
 }
 
 export interface TendencyResponse {

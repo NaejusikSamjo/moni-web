@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { RiUser3Line, RiBarChartLine, RiBankCardLine, RiQuestionLine, RiArrowRightSLine, RiGoogleLine, RiSettings3Line } from "react-icons/ri";
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { useAuth, userApi } from "@/features/auth";
 import { Badge, Skeleton } from "@/shared/ui";
 import { PageHeader } from "@/widgets/page-header/PageHeader";
-import { tradeApi } from "@/entities/trade";
+import { portfolioApi } from "@/entities/portfolio";
 import { formatPrice } from "@/shared/lib/format";
-import type { AccountResponse } from "@/entities/trade";
+import type { PortfolioAssetResponse } from "@/entities/portfolio";
 import styles from "./page.module.css";
 
 const TENDENCY_LABEL: Record<string, string> = {
@@ -23,13 +24,13 @@ const TENDENCY_LABEL: Record<string, string> = {
 export default function MyPage() {
   const { user, isLoading, logout } = useAuth();
   const [tendencyLabel, setTendencyLabel] = useState<string | null | undefined>(undefined);
-  const [account, setAccount] = useState<AccountResponse | null | undefined>(undefined);
+  const [assets, setAssets] = useState<PortfolioAssetResponse | null | undefined>(undefined);
 
   useEffect(() => {
     userApi.getTendency()
       .then((res) => setTendencyLabel(TENDENCY_LABEL[res.type] ?? "설문 완료"))
       .catch(() => setTendencyLabel(null));
-    tradeApi.getAccount().then(setAccount).catch(() => setAccount(null));
+    portfolioApi.getAssets().then(setAssets).catch(() => setAssets(null));
   }, []);
 
   const handleLogout = async () => {
@@ -37,11 +38,12 @@ export default function MyPage() {
   };
 
   const joinDate = user?.createdAt ? user.createdAt.slice(0, 10).replace(/-/g, ".") : "";
-  const providerLabel = user?.provider === "GOOGLE" ? "Google 계정"
-    : user?.provider === "KAKAO" ? "카카오 계정"
-    : "통합 회원";
-  const ProviderIcon = user?.provider === "GOOGLE" ? RiGoogleLine
-    : user?.provider === "KAKAO" ? RiKakaoTalkFill
+  const providerLabel = user?.integrated ? "통합 회원"
+    : user?.oauthProvider === "GOOGLE" ? "Google 계정"
+    : user?.oauthProvider === "KAKAO" ? "카카오 계정"
+    : "일반 회원";
+  const ProviderIcon = !user?.integrated && user?.oauthProvider === "GOOGLE" ? RiGoogleLine
+    : !user?.integrated && user?.oauthProvider === "KAKAO" ? RiKakaoTalkFill
     : null;
 
   return (
@@ -60,12 +62,26 @@ export default function MyPage() {
           </>
         ) : (
           <>
-            <div className={styles.avatar}><RiUser3Line size={30} color="white" /></div>
+            <div className={styles.avatar}>
+              {user?.profile?.startsWith("https://") ? (
+                <Image
+                  src={user.profile}
+                  alt="프로필"
+                  width={60}
+                  height={60}
+                  className={styles.avatarImg}
+                />
+              ) : user?.profile ? (
+                <span className={styles.avatarEmoji}>{user.profile}</span>
+              ) : (
+                <RiUser3Line size={28} color="var(--color-text-muted)" />
+              )}
+            </div>
             <div className={styles.profileInfo}>
               <p className={styles.profileName}>{user?.name ?? "사용자"}</p>
               <p className={styles.profileEmail}>{user?.email ?? ""}</p>
               <div className={styles.profileBadges}>
-                <span className={styles.providerBadge} data-provider={user?.provider ?? "default"}>
+                <span className={styles.providerBadge} data-provider={user?.oauthProvider ?? "default"}>
                   {ProviderIcon && <ProviderIcon size={12} />}
                   {providerLabel}
                 </span>
@@ -77,7 +93,7 @@ export default function MyPage() {
       </section>
 
       {/* 자산 요약 */}
-      {account === undefined ? (
+      {assets === undefined ? (
         <div className={`${styles.assetSummary} ${styles.noPointerEvents}`}>
           <div className={styles.assetItem}>
             <Skeleton width={40} height={11} />
@@ -94,23 +110,21 @@ export default function MyPage() {
             <Skeleton width={76} height={18} />
           </div>
         </div>
-      ) : account === null ? null : (
+      ) : assets === null ? null : (
         <Link href="/main/mypage/holdings" className={styles.assetSummary}>
           <div className={styles.assetItem}>
             <span className={styles.assetLabel}>총 자산</span>
-            <span className={styles.assetValue}>
-              {formatPrice(account.balance + account.totalInvestment)}
-            </span>
+            <span className={styles.assetValue}>{formatPrice(assets.totalAsset)}</span>
           </div>
           <div className={styles.assetDivider} />
           <div className={styles.assetItem}>
             <span className={styles.assetLabel}>가용 현금</span>
-            <span className={styles.assetValue}>{formatPrice(account.balance)}</span>
+            <span className={styles.assetValue}>{formatPrice(assets.cashBalance)}</span>
           </div>
           <div className={styles.assetDivider} />
           <div className={styles.assetItem}>
-            <span className={styles.assetLabel}>투자금</span>
-            <span className={styles.assetValue}>{formatPrice(account.totalInvestment)}</span>
+            <span className={styles.assetLabel}>주식 평가</span>
+            <span className={styles.assetValue}>{formatPrice(assets.stockEvaluationAmount)}</span>
           </div>
         </Link>
       )}

@@ -15,6 +15,7 @@ import styles from "./page.module.css";
 export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistResponse[]>([]);
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [names, setNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
@@ -26,11 +27,16 @@ export default function WatchlistPage() {
         const results = await Promise.allSettled(
           list.map((item) => stockApi.getStockDetail(item.stockCode))
         );
-        const map: Record<string, number> = {};
+        const priceMap: Record<string, number> = {};
+        const nameMap: Record<string, string> = {};
         results.forEach((r, i) => {
-          if (r.status === "fulfilled") map[list[i].stockCode] = r.value.price;
+          if (r.status === "fulfilled") {
+            priceMap[list[i].stockCode] = r.value.price;
+            nameMap[list[i].stockCode] = r.value.name;
+          }
         });
-        setPrices(map);
+        setPrices(priceMap);
+        setNames(nameMap);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -84,7 +90,7 @@ export default function WatchlistPage() {
           ) : (
             items.map((item) => {
               const info = getStockInfo(item.stockCode);
-              const name = info?.name ?? getStockName(item.stockCode);
+              const name = names[item.stockCode] ?? info?.name ?? getStockName(item.stockCode);
               const price = prices[item.stockCode];
 
               return (

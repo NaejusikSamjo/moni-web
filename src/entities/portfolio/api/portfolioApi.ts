@@ -12,7 +12,7 @@ export const portfolioApi = {
 
   getAssets: async (): Promise<PortfolioAssetResponse | null> => {
     try {
-      return await apiRequest<PortfolioAssetResponse>("/api/v1/portfolio/assets");
+      return await apiRequest<PortfolioAssetResponse>("/api/v1/assets");
     } catch (err) {
       if (err instanceof ApiException && err.status === 404) return null;
       throw err;
@@ -20,5 +20,5 @@ export const portfolioApi = {
   },
 
   getHoldings: (page = 0, size = 10): Promise<PortfolioHoldingsResponse> =>
-    apiRequest(`/api/v1/portfolio/holdings?page=${page}&size=${size}`),
+    apiRequest(`/api/v1/assets/holdings?page=${page}&size=${size}`),
 };
