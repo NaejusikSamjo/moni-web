@@ -7,14 +7,17 @@ import {
   RiArrowUpSLine, RiArrowDownSLine, RiCloseLine, RiAddLine,
 } from "react-icons/ri";
 import { useAuth } from "@/features/auth";
-import { ServiceUnavailable, StockLogo, Skeleton } from "@/shared/ui";
+import { ServiceUnavailable, StockLogo, Skeleton, MarkdownText } from "@/shared/ui";
 import { stockApi } from "@/entities/stock";
 import { tradeApi } from "@/entities/trade";
 import { portfolioApi } from "@/entities/portfolio";
 import { paymentApi } from "@/entities/payment";
+import { aiApi, MARKET_KEYWORDS } from "@/entities/ai";
+import { RiLoaderLine } from "react-icons/ri";
 import { formatPrice, formatChangeRate } from "@/shared/lib/format";
 import type { TopVolumeStockItem, ThemeRankingResponse } from "@/entities/stock";
 import type { PortfolioAssetResponse } from "@/entities/portfolio";
+import type { MarketKeyword } from "@/entities/ai";
 import styles from "./page.module.css";
 
 type FeedItem = {
@@ -148,6 +151,66 @@ function ThemeSection({ themes }: { themes: ThemeRankingResponse[] }) {
 }
 
 
+function MarketNewsSection() {
+  const [selectedKeyword, setSelectedKeyword] = useState<MarketKeyword | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSelect = async (keyword: MarketKeyword) => {
+    if (loading) return;
+    setSelectedKeyword(keyword);
+    setSummary(null);
+    setError(false);
+    setLoading(true);
+    try {
+      const res = await aiApi.createMarketAnalysis(keyword);
+      setSummary(res.summary);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.marketNewsCard}>
+      <div className={styles.marketKeywordRow}>
+        {MARKET_KEYWORDS.map(({ value, label }) => (
+          <button
+            key={value}
+            className={[
+              styles.marketKeywordChip,
+              selectedKeyword === value ? styles.marketKeywordChipActive : "",
+            ].join(" ")}
+            onClick={() => { void handleSelect(value); }}
+            disabled={loading}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {loading && (
+        <div className={styles.marketLoading}>
+          <RiLoaderLine size={16} className={styles.spinner} />
+          <span>AI가 뉴스를 분석하는 중...</span>
+        </div>
+      )}
+      {!loading && error && (
+        <p className={styles.marketError}>분석 결과를 불러오지 못했어요</p>
+      )}
+      {!loading && summary && (
+        <div className={styles.marketSummary}>
+          <MarkdownText text={summary} />
+        </div>
+      )}
+      {!loading && !summary && !error && !selectedKeyword && (
+        <p className={styles.marketHint}>키워드를 선택하면 AI가 시장 뉴스를 분석해드려요</p>
+      )}
+    </div>
+  );
+}
+
 function PopularSection({ stocks }: { stocks: TopVolumeStockItem[] }) {
   return (
     <div className={styles.popularList}>
@@ -274,10 +337,11 @@ export default function DashboardPage() {
         if (themesLoading) return <ThemeSkeleton />;
         if (!themes.length) return <ServiceUnavailable message="테마 정보를 불러올 수 없습니다" />;
         return <ThemeSection themes={themes} />;
+      case "news-ai":
+        return <MarketNewsSection />;
       default: {
         const msgs: Record<string, string> = {
-          "news-ai": "AI 뉴스 요약을 불러올 수 없습니다",
-          news:     "뉴스 피드를 불러올 수 없습니다",
+          news: "뉴스 피드를 불러올 수 없습니다",
         };
         return <ServiceUnavailable message={msgs[id] ?? "불러올 수 없습니다"} />;
       }

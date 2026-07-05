@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use, type CSSProperties } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RiArrowLeftLine, RiHeartLine, RiHeartFill, RiLoaderLine } from "react-icons/ri";
@@ -75,24 +75,36 @@ export default function StockDetailPage({ params }: Props) {
     setAiAnalysis(null);
     if (!aiCalledRef.current) {
       aiCalledRef.current = true;
-      aiApi.getIssueAnalysis(id)
-        .then(async (res) => {
-          if (res) {
-            setAiAnalysis(res);
-            setAiStatus("done");
-          } else {
-            try {
-              const created = await aiApi.createIssueAnalysis(id);
-              setAiAnalysis(created);
-              setAiStatus("done");
-            } catch {
-              // eslint-disable-next-line no-console
-              console.log(`[없는 종목] AI 분석 미지원: ${id}`);
-              setAiStatus("unsupported");
-            }
-          }
-        })
-        .catch(() => setAiStatus("unsupported"));
+      void (async () => {
+        const [watchRes, analysisRes] = await Promise.allSettled([
+          aiApi.getWatchCompanies(),
+          aiApi.getIssueAnalysis(id),
+        ]);
+
+        const watchList = watchRes.status === "fulfilled" ? watchRes.value : [];
+        // watchList가 비어있으면(API 실패) 지원 여부 불명 → 허용으로 간주
+        const isSupported = watchList.length === 0 || watchList.some((c) => c.ticker === id);
+
+        if (!isSupported) {
+          setAiStatus("unsupported");
+          return;
+        }
+
+        const cached = analysisRes.status === "fulfilled" ? analysisRes.value : null;
+        if (cached) {
+          setAiAnalysis(cached);
+          setAiStatus("done");
+          return;
+        }
+
+        try {
+          const created = await aiApi.createIssueAnalysis(id);
+          setAiAnalysis(created);
+          setAiStatus("done");
+        } catch {
+          setAiStatus("unsupported");
+        }
+      })();
     }
 
     userApi.getWatchlist().then((items) => {
@@ -331,11 +343,11 @@ export default function StockDetailPage({ params }: Props) {
           </div>
           {aiStatus === "loading" && (
             <div className={styles.aiSkeletonWrap}>
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "100%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "88%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "94%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "76%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "60%" } as CSSProperties} />
+              <div className={styles.aiSkeletonLine} />
+              <div className={styles.aiSkeletonLine} data-w="88" />
+              <div className={styles.aiSkeletonLine} data-w="94" />
+              <div className={styles.aiSkeletonLine} data-w="76" />
+              <div className={styles.aiSkeletonLine} data-w="60" />
             </div>
           )}
           {aiStatus === "done" && aiAnalysis && (
@@ -441,9 +453,9 @@ export default function StockDetailPage({ params }: Props) {
               </div>
               {aiStatus === "loading" && (
                 <div className={styles.aiSkeletonWrap}>
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "100%" } as CSSProperties} />
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "85%" } as CSSProperties} />
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "70%" } as CSSProperties} />
+                  <div className={styles.aiSkeletonLine} />
+                  <div className={styles.aiSkeletonLine} data-w="85" />
+                  <div className={styles.aiSkeletonLine} data-w="70" />
                 </div>
               )}
               {aiStatus === "done" && aiAnalysis && (
