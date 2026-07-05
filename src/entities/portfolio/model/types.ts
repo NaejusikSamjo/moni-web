@@ -14,6 +14,7 @@ export interface PortfolioAssetResponse {
 
 export interface PortfolioHoldingItem {
   ticker: string;
+  stockName: string;
   quantity: number;
   averagePurchasePrice: number;
   currentPrice: number;
@@ -24,10 +25,31 @@ export interface PortfolioHoldingItem {
 }
 
 export interface PortfolioHoldingsResponse {
+  stockProfitLoss: number;
+  stockReturnRate: number;
   content: PortfolioHoldingItem[];
   page: number;
   size: number;
   totalElements: number;
   totalPages: number;
   sort: string;
+}
+
+export type AnalysisStatus = "PENDING" | "SUCCESS" | "FAILED";
+
+export interface PortfolioAnalysisCreateResponse {
+  analysisId: string;
+  status: AnalysisStatus;
+}
+
+export interface PortfolioAnalysisResponse {
+  analysisId: string;
+  status: AnalysisStatus;
+  totalReturnRate: number | null;
+  totalEvaluationAmount: number | null;
+  summary: string | null;
+  concentrationScore: number | null;
+  concentrationThreshold: number | null;
+  errorMessage: string | null;
+  analyzedAt: string | null;
 }

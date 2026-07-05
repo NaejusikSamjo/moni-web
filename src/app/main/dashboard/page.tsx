@@ -11,6 +11,7 @@ import { ServiceUnavailable, StockLogo, Skeleton } from "@/shared/ui";
 import { stockApi } from "@/entities/stock";
 import { tradeApi } from "@/entities/trade";
 import { portfolioApi } from "@/entities/portfolio";
+import { paymentApi } from "@/entities/payment";
 import { formatPrice, formatChangeRate } from "@/shared/lib/format";
 import type { TopVolumeStockItem, ThemeRankingResponse } from "@/entities/stock";
 import type { PortfolioAssetResponse } from "@/entities/portfolio";
@@ -173,7 +174,7 @@ function PopularSection({ stocks }: { stocks: TopVolumeStockItem[] }) {
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const displayName = (user?.nickname ?? user?.name ?? "사용자").split("#")[0];
-  const plan: "free" | "ai-plus" = "free";
+  const [plan, setPlan] = useState<"free" | "ai-plus" | null>(null);
 
   const [feed, setFeed] = useState<FeedItem[]>(DEFAULT_FEED);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -202,6 +203,9 @@ export default function DashboardPage() {
     stockApi.getTopVolume().then((res) => setPopularStocks(res.stocks ?? [])).catch(() => {}).finally(() => setPopularLoading(false));
     stockApi.getThemes().then(setThemes).catch(() => {}).finally(() => setThemesLoading(false));
     portfolioApi.getAssets().then(setAssets).catch(() => setAssets(null));
+    paymentApi.getSubscriptionStatus()
+      .then((res) => { setPlan(res.subscribed ? "ai-plus" : "free"); })
+      .catch(() => { setPlan("free"); });
   }, []);
 
   const handleCreateAccount = async () => {
@@ -332,9 +336,11 @@ export default function DashboardPage() {
               <span className={styles.greetingName}>
                 {displayName}<span className={styles.greetingNim}>님</span>
               </span>
-              <span className={styles.planBadge} data-plan={plan}>
-                {plan === "free" ? "free" : "AI 플러스"}
-              </span>
+              {plan !== null && (
+                <span className={styles.planBadge} data-plan={plan}>
+                  {plan === "free" ? "free" : "AI+"}
+                </span>
+              )}
             </div>
             <p className={styles.greetingSub}>좋은 하루 보내세요 ☀️</p>
 

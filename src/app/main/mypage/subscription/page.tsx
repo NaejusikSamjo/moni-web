@@ -156,13 +156,13 @@ export default function SubscriptionPage() {
             <div className={styles.activeSubscription}>
               <div className={styles.statusBadge} data-status={status.status}>
                 <RiCheckboxCircleFill size={14} />
-                {STATUS_LABEL[status.status] ?? status.status}
+                {STATUS_LABEL[status.status ?? ""] ?? status.status}
               </div>
               <p className={styles.planName}>모니 AI 구독</p>
               <div className={styles.infoRows}>
                 <div className={styles.infoRow}>
                   <RiCoinLine size={15} className={styles.infoIcon} />
-                  <span>월 {status.amount.toLocaleString()}원</span>
+                  <span>월 {status.amount?.toLocaleString()}원</span>
                 </div>
                 {status.nextBillingDate && (
                   <div className={styles.infoRow}>

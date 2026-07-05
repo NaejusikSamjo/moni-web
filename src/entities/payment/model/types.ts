@@ -12,14 +12,14 @@ export interface SubscribeResponse {
   nextBillingDate: string;
 }
 
-export type SubscriptionStatus = "ACTIVE" | "CANCELLING" | "CANCELLED";
+export type SubscriptionStatus = "PENDING_ACTIVATION" | "ACTIVE" | "CANCELLING" | "CANCELLED" | "SUSPENDED";
 
 export interface SubscriptionStatusResponse {
   subscribed: boolean;
-  subscriptionId: string;
-  status: SubscriptionStatus;
+  subscriptionId: string | null;
+  status: SubscriptionStatus | null;
   nextBillingDate: string | null;
-  amount: number;
+  amount: number | null;
 }
 
 export interface CancelSubscriptionResponse {
