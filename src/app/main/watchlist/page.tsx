@@ -31,7 +31,7 @@ export default function WatchlistPage() {
         const nameMap: Record<string, string> = {};
         results.forEach((r, i) => {
           if (r.status === "fulfilled") {
-            priceMap[list[i].stockCode] = r.value.price;
+            if (r.value.price != null) priceMap[list[i].stockCode] = r.value.price;
             nameMap[list[i].stockCode] = r.value.name;
           }
         });

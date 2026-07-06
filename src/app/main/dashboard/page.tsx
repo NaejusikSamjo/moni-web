@@ -17,7 +17,7 @@ import { RiLoaderLine } from "react-icons/ri";
 import { formatPrice, formatChangeRate } from "@/shared/lib/format";
 import type { TopVolumeStockItem, ThemeRankingResponse } from "@/entities/stock";
 import type { PortfolioAssetResponse } from "@/entities/portfolio";
-import type { MarketKeyword } from "@/entities/ai";
+import type { MarketKeyword, NewsResponse } from "@/entities/ai";
 import styles from "./page.module.css";
 
 type FeedItem = {
@@ -151,6 +151,51 @@ function ThemeSection({ themes }: { themes: ThemeRankingResponse[] }) {
 }
 
 
+function NewsFeedSection() {
+  const [newsList, setNewsList] = useState<NewsResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    aiApi.getNewsList()
+      .then((res) => setNewsList(res.content))
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className={styles.newsSkeletonWrap}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={styles.newsSkeletonItem}>
+            <div className={styles.newsSkeletonLine} />
+            <div className={styles.newsSkeletonLine} data-w="78" />
+            <div className={styles.newsSkeletonMeta} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (failed || newsList.length === 0) {
+    return <ServiceUnavailable message="뉴스 피드를 불러올 수 없습니다" />;
+  }
+
+  return (
+    <div className={styles.newsFeedList}>
+      {newsList.map((item, i) => (
+        <div key={i} className={styles.newsFeedItem}>
+          <p className={styles.newsFeedTitle}>{item.title}</p>
+          <div className={styles.newsFeedMeta}>
+            <span className={styles.newsFeedSource}>{item.source}</span>
+            <span className={styles.newsFeedDate}>{item.published_at.slice(0, 10).replace(/-/g, ".")}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MarketNewsSection() {
   const [selectedKeyword, setSelectedKeyword] = useState<MarketKeyword | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
@@ -165,7 +210,7 @@ function MarketNewsSection() {
     setLoading(true);
     try {
       const res = await aiApi.createMarketAnalysis(keyword);
-      setSummary(res.summary);
+      setSummary(res.summary.replace(/\. (\d+)\. /g, ".\n\n$1. "));
     } catch {
       setError(true);
     } finally {
@@ -337,14 +382,12 @@ export default function DashboardPage() {
         if (themesLoading) return <ThemeSkeleton />;
         if (!themes.length) return <ServiceUnavailable message="테마 정보를 불러올 수 없습니다" />;
         return <ThemeSection themes={themes} />;
+      case "news":
+        return <NewsFeedSection />;
       case "news-ai":
         return <MarketNewsSection />;
-      default: {
-        const msgs: Record<string, string> = {
-          news: "뉴스 피드를 불러올 수 없습니다",
-        };
-        return <ServiceUnavailable message={msgs[id] ?? "불러올 수 없습니다"} />;
-      }
+      default:
+        return <ServiceUnavailable message="불러올 수 없습니다" />;
     }
   };
 

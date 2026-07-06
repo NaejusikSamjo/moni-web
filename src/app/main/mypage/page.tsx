@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { RiUser3Line, RiBarChartLine, RiBankCardLine, RiQuestionLine, RiArrowRightSLine, RiGoogleLine, RiSettings3Line } from "react-icons/ri";
+import { RiUser3Line, RiBarChartLine, RiBankCardLine, RiArrowRightSLine, RiGoogleLine, RiSettings3Line } from "react-icons/ri";
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { useAuth, userApi } from "@/features/auth";
 import { Badge, Skeleton } from "@/shared/ui";
@@ -136,7 +136,6 @@ export default function MyPage() {
           { icon: RiBarChartLine, label: "투자 성향 설문", href: "/main/mypage/survey", badge: tendencyLabel },
           { icon: RiSettings3Line, label: "앱 설정", href: "/main/mypage/settings" },
           { icon: RiBankCardLine, label: "구독 관리", href: "/main/mypage/subscription" },
-          { icon: RiQuestionLine, label: "고객센터", href: "/main/mypage/support" },
         ].map(({ icon: Icon, label, href, badge }) => (
           <Link key={href} href={href} className={styles.menuItem}>
             <div className={styles.menuIconWrap}>

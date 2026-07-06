@@ -14,7 +14,7 @@ import { formatPrice } from "@/shared/lib/format";
 import { Badge, Button, MarkdownText, StockLogo } from "@/shared/ui";
 import { ApiException } from "@/shared/api/types";
 import type { StockResponse, ChartIndex, CandleData } from "@/entities/stock";
-import type { CompanyIssueResponse } from "@/entities/ai";
+import type { CompanyIssueResponse, NewsResponse } from "@/entities/ai";
 import styles from "./page.module.css";
 
 interface Props { params: Promise<{ id: string }> }
@@ -40,6 +40,8 @@ export default function StockDetailPage({ params }: Props) {
   const [chartLoading, setChartLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<CompanyIssueResponse | null>(null);
   const [aiStatus, setAiStatus] = useState<"loading" | "done" | "unsupported">("loading");
+  const [newsList, setNewsList] = useState<NewsResponse[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [liveRefreshing, setLiveRefreshing] = useState(false);
 
@@ -110,6 +112,13 @@ export default function StockDetailPage({ params }: Props) {
     userApi.getWatchlist().then((items) => {
       setIsFavorite(items.some((i) => i.stockCode === id));
     }).catch(() => {});
+
+    setNewsLoading(true);
+    setNewsList([]);
+    aiApi.getNewsList({ ticker: id })
+      .then((res) => setNewsList(res.content))
+      .catch(() => {})
+      .finally(() => setNewsLoading(false));
   }, [id]);
 
   useEffect(() => {
@@ -359,18 +368,47 @@ export default function StockDetailPage({ params }: Props) {
         </div>
       </section>
 
+      <section className={styles.section}>
+        <div className={styles.newsCard}>
+          <p className={styles.newsCardTitle}>관련 뉴스</p>
+          {newsLoading ? (
+            <div className={styles.newsSkeletonWrap}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={styles.newsSkeletonItem}>
+                  <div className={styles.newsSkeletonLine} />
+                  <div className={styles.newsSkeletonLine} data-w="80" />
+                  <div className={styles.newsSkeletonMeta} />
+                </div>
+              ))}
+            </div>
+          ) : newsList.length === 0 ? (
+            <p className={styles.newsEmpty}>관련 뉴스가 없습니다</p>
+          ) : (
+            newsList.map((item, i) => (
+              <div key={i} className={styles.newsItem}>
+                <p className={styles.newsTitle}>{item.title}</p>
+                <div className={styles.newsBottom}>
+                  <span className={styles.newsSource}>{item.source}</span>
+                  <span className={styles.newsTime}>{item.published_at.slice(0, 10).replace(/-/g, ".")}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
       <div className={styles.tradeBar}>
         <Button
           variant="outline"
           size="lg"
-          onClick={() => openModal("sell", stock.price)}
+          onClick={() => openModal("sell", stock.price ?? 0)}
         >
           매도
         </Button>
         <Button
           variant="primary"
           size="lg"
-          onClick={() => openModal("buy", stock.price)}
+          onClick={() => openModal("buy", stock.price ?? 0)}
         >
           매수
         </Button>

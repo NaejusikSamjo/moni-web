@@ -5,4 +5,6 @@ export type {
   WatchCompanyResponse,
   MarketAnalysisResponse,
   MarketKeyword,
+  NewsResponse,
+  NewsSearchParams,
 } from "@/entities/ai/model/types";

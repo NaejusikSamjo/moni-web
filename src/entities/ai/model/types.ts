@@ -31,3 +31,16 @@ export const MARKET_KEYWORDS: { value: MarketKeyword; label: string }[] = [
   { value: "인플레이션", label: "인플레이션" },
   { value: "전쟁",     label: "전쟁" },
 ];
+
+export interface NewsResponse {
+  title: string;
+  published_at: string;
+  source: string;
+}
+
+export interface NewsSearchParams {
+  ticker?: string;
+  companyName?: string;
+  keyword?: string;
+  date?: string;
+}
