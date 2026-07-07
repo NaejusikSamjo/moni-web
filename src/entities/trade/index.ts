@@ -7,4 +7,9 @@ export type {
   HoldingResponse,
   TradeType,
   TradeStatus,
+  ReservedOrderType,
+  ReservedOrderStatus,
+  ReservedBuyOrderRequest,
+  ReservedSellOrderRequest,
+  ReservedOrderResponse,
 } from "@/entities/trade/model/types";

@@ -7,6 +7,9 @@ import type {
   TradeSellRequest,
   TradeResponse,
   HoldingResponse,
+  ReservedBuyOrderRequest,
+  ReservedSellOrderRequest,
+  ReservedOrderResponse,
 } from "@/entities/trade/model/types";
 
 export const tradeApi = {
@@ -40,6 +43,30 @@ export const tradeApi = {
   getHoldings: (page = 0, size = 50): Promise<PageRes<HoldingResponse>> =>
     apiRequest(`/api/v1/holdings?page=${page}&size=${size}`),
 
-  getHolding: (ticker: string): Promise<HoldingResponse> =>
-    apiRequest(`/api/v1/holdings/${ticker}`),
+  getHolding: async (ticker: string): Promise<HoldingResponse | null> => {
+    try {
+      return await apiRequest<HoldingResponse>(`/api/v1/holdings/${ticker}`);
+    } catch (err) {
+      if (err instanceof ApiException && err.status === 404) return null;
+      throw err;
+    }
+  },
+
+  getReservedOrders: (): Promise<ReservedOrderResponse[]> =>
+    apiRequest("/api/v1/reserved-orders"),
+
+  createReservedBuyOrder: (data: ReservedBuyOrderRequest): Promise<ReservedOrderResponse> =>
+    apiRequest("/api/v1/reserved-orders/buy", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  createReservedSellOrder: (data: ReservedSellOrderRequest): Promise<ReservedOrderResponse> =>
+    apiRequest("/api/v1/reserved-orders/sell", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  cancelReservedOrder: (orderId: string): Promise<void> =>
+    apiRequest(`/api/v1/reserved-orders/${orderId}`, { method: "DELETE" }),
 };

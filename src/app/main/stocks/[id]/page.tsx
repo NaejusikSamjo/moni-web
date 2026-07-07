@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { RiArrowLeftLine, RiHeartLine, RiHeartFill, RiLoaderLine } from "react-icons/ri";
+import { RiArrowLeftLine, RiHeartLine, RiHeartFill, RiLoaderLine, RiTimerLine } from "react-icons/ri";
 import { stockApi, StockChart } from "@/entities/stock";
 import { tradeApi } from "@/entities/trade";
 import { portfolioApi } from "@/entities/portfolio";
@@ -15,6 +15,7 @@ import { Badge, Button, MarkdownText, StockLogo } from "@/shared/ui";
 import { ApiException } from "@/shared/api/types";
 import type { StockResponse, ChartIndex, CandleData } from "@/entities/stock";
 import type { CompanyIssueResponse, NewsResponse } from "@/entities/ai";
+import type { ReservedOrderResponse } from "@/entities/trade";
 import styles from "./page.module.css";
 
 interface Props { params: Promise<{ id: string }> }
@@ -51,9 +52,22 @@ export default function StockDetailPage({ params }: Props) {
   const [cashBalance, setCashBalance] = useState<number | null>(null);
   const [holdingQty, setHoldingQty] = useState<number>(0);
   const [modalInfoLoading, setModalInfoLoading] = useState(false);
-  const [qty, setQty] = useState("1");
+  const [buyAmount, setBuyAmount] = useState("");
+  const [sellAmount, setSellAmount] = useState("");
+  const [orderMode, setOrderMode] = useState<"market" | "limit">("market");
+  const [limitTargetPrice, setLimitTargetPrice] = useState("");
   const [tradeLoading, setTradeLoading] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
+
+  const [showReserved, setShowReserved] = useState(false);
+  const [reservedTradeType, setReservedTradeType] = useState<"BUY" | "SELL">("BUY");
+  const [reservedAmount, setReservedAmount] = useState("");
+  const [reservedLoading, setReservedLoading] = useState(false);
+  const [reservedError, setReservedError] = useState<string | null>(null);
+
+  const [stockReservedOrders, setStockReservedOrders] = useState<ReservedOrderResponse[]>([]);
+  const [showReservedList, setShowReservedList] = useState(false);
+  const [cancellingReservedId, setCancellingReservedId] = useState<string | null>(null);
 
   const aiCalledRef = useRef(false);
   const modalOpenRef = useRef(false);
@@ -113,6 +127,10 @@ export default function StockDetailPage({ params }: Props) {
       setIsFavorite(items.some((i) => i.stockCode === id));
     }).catch(() => {});
 
+    tradeApi.getReservedOrders()
+      .then((orders) => setStockReservedOrders(orders.filter((o) => o.ticker === id && o.status === "PENDING")))
+      .catch(() => {});
+
     setNewsLoading(true);
     setNewsList([]);
     aiApi.getNewsList({ ticker: id })
@@ -168,7 +186,10 @@ export default function StockDetailPage({ params }: Props) {
   const openModal = async (type: "buy" | "sell", currentPrice: number) => {
     modalOpenRef.current = true;
     setTradePrice(currentPrice);
-    setQty("1");
+    setBuyAmount("");
+    setSellAmount("");
+    setOrderMode("market");
+    setLimitTargetPrice("");
     setTradeError(null);
     setCashBalance(null);
     setHoldingQty(0);
@@ -190,7 +211,30 @@ export default function StockDetailPage({ params }: Props) {
     if (assetsResult.status === "fulfilled" && assetsResult.value) {
       setCashBalance(assetsResult.value.cashBalance);
     }
-    if (holdingResult.status === "fulfilled") {
+    if (holdingResult.status === "fulfilled" && holdingResult.value) {
+      setHoldingQty(holdingResult.value.quantity);
+    }
+    setModalInfoLoading(false);
+  };
+
+  const openReservedModal = async () => {
+    modalOpenRef.current = true;
+    setShowReserved(true);
+    setTradePrice(stock?.price ?? 0);
+    setReservedTradeType("BUY");
+    setReservedAmount("");
+    setReservedError(null);
+    setCashBalance(null);
+    setHoldingQty(0);
+    setModalInfoLoading(true);
+    const [assetsResult, holdingResult] = await Promise.allSettled([
+      portfolioApi.getAssets(),
+      tradeApi.getHolding(id),
+    ]);
+    if (assetsResult.status === "fulfilled" && assetsResult.value) {
+      setCashBalance(assetsResult.value.cashBalance);
+    }
+    if (holdingResult.status === "fulfilled" && holdingResult.value) {
       setHoldingQty(holdingResult.value.quantity);
     }
     setModalInfoLoading(false);
@@ -200,41 +244,81 @@ export default function StockDetailPage({ params }: Props) {
     modalOpenRef.current = false;
     setShowBuy(false);
     setShowSell(false);
+    setShowReserved(false);
+    setShowReservedList(false);
   };
 
-  const maxBuyQty = cashBalance !== null && tradePrice > 0
-    ? Math.floor(cashBalance / tradePrice)
-    : null;
-
-  const handleQtyChange = (raw: string) => {
-    const n = Number(raw.replace(/\D/g, "") || "1");
-    if (showBuy && maxBuyQty !== null) {
-      setQty(String(Math.min(n, Math.max(maxBuyQty, 1))));
-    } else if (showSell) {
-      setQty(String(Math.min(n, Math.max(holdingQty, 1))));
-    } else {
-      setQty(String(n));
+  const handleCancelStockReserved = async (orderId: string) => {
+    setCancellingReservedId(orderId);
+    try {
+      await tradeApi.cancelReservedOrder(orderId);
+      setStockReservedOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } finally {
+      setCancellingReservedId(null);
     }
   };
 
-  const handleQtyStep = (delta: number) => {
-    const current = Number(qty);
-    const next = current + delta;
-    if (next < 1) return;
-    if (showBuy && maxBuyQty !== null && next > maxBuyQty) return;
-    if (showSell && next > holdingQty) return;
-    setQty(String(next));
+  const effectivePrice = (orderMode === "limit" && Number(limitTargetPrice) > 0)
+    ? Number(limitTargetPrice)
+    : tradePrice;
+
+  const handleBuyQtyStep = (delta: number) => {
+    if (effectivePrice <= 0) return;
+    const next = (Number(buyAmount) || 0) + delta * effectivePrice;
+    if (next < 0) return;
+    if (cashBalance !== null && next > cashBalance) return;
+    setBuyAmount(next > 0 ? String(next) : "");
   };
+
+  const handleSellAmtStep = (delta: number) => {
+    if (effectivePrice <= 0) return;
+    const next = (Number(sellAmount) || 0) + delta * effectivePrice;
+    if (next < 0) return;
+    if (holdingQty > 0 && next > holdingQty * tradePrice) return;
+    setSellAmount(next > 0 ? String(next) : "");
+  };
+
+  const handleReservedAmtStep = (delta: number) => {
+    if (tradePrice <= 0) return;
+    const next = (Number(reservedAmount) || 0) + delta * tradePrice;
+    if (next < 0) return;
+    if (reservedTradeType === "SELL" && holdingQty > 0 && next > holdingQty * tradePrice) return;
+    setReservedAmount(next > 0 ? String(next) : "");
+  };
+
+
 
   const handleTrade = async () => {
     setTradeError(null);
     setTradeLoading(true);
     try {
-      const quantity = Number(qty);
       if (showBuy) {
-        await tradeApi.buyStock({ ticker: id, price: tradePrice, quantity });
+        if (orderMode === "limit") {
+          const res = await tradeApi.createReservedBuyOrder({
+            ticker: id,
+            orderType: "LIMIT",
+            targetPrice: Number(limitTargetPrice),
+            amount: Number(buyAmount),
+          });
+          setStockReservedOrders((prev) => [res, ...prev]);
+        } else {
+          await tradeApi.buyStock({ ticker: id, amount: Number(buyAmount) });
+        }
       } else {
-        await tradeApi.sellStock({ ticker: id, price: tradePrice, quantity });
+        const price = orderMode === "limit" && Number(limitTargetPrice) > 0
+          ? Number(limitTargetPrice) : tradePrice;
+        const quantity = price > 0 ? Number(sellAmount) / price : 0;
+        if (orderMode === "limit") {
+          const res = await tradeApi.createReservedSellOrder({
+            ticker: id,
+            orderType: "LIMIT",
+            targetPrice: Number(limitTargetPrice),
+            quantity,
+          });
+          setStockReservedOrders((prev) => [res, ...prev]);
+        } else {
+          await tradeApi.sellStock({ ticker: id, quantity });
+        }
       }
       closeModal();
     } catch (err) {
@@ -243,6 +327,55 @@ export default function StockDetailPage({ params }: Props) {
       setTradeLoading(false);
     }
   };
+
+  const handleReservedOrder = async () => {
+    setReservedError(null);
+    setReservedLoading(true);
+    try {
+      if (reservedTradeType === "BUY") {
+        const res = await tradeApi.createReservedBuyOrder({
+          ticker: id,
+          orderType: "RESERVATION",
+          amount: Number(reservedAmount),
+        });
+        setStockReservedOrders((prev) => [res, ...prev]);
+      } else {
+        const quantity = tradePrice > 0 ? Number(reservedAmount) / tradePrice : 0;
+        const res = await tradeApi.createReservedSellOrder({
+          ticker: id,
+          orderType: "RESERVATION",
+          quantity,
+        });
+        setStockReservedOrders((prev) => [res, ...prev]);
+      }
+      closeModal();
+    } catch (err) {
+      setReservedError(err instanceof ApiException ? err.message : "예약 주문 중 오류가 발생했습니다.");
+    } finally {
+      setReservedLoading(false);
+    }
+  };
+
+  const toQtyStr = (amount: string, price?: number) => {
+    const p = price ?? tradePrice;
+    const n = Number(amount);
+    if (!n || p <= 0) return "0주";
+    return `${(n / p).toFixed(4).replace(/\.?0+$/, "")}주`;
+  };
+
+  const isBuyDisabled = (() => {
+    if (orderMode === "limit" && !Number(limitTargetPrice)) return true;
+    const amt = Number(buyAmount);
+    if (amt <= 0) return true;
+    return cashBalance !== null && amt > cashBalance;
+  })();
+
+  const isSellDisabled = (() => {
+    if (orderMode === "limit" && !Number(limitTargetPrice)) return true;
+    const amt = Number(sellAmount);
+    if (amt <= 0) return true;
+    return holdingQty > 0 && amt > holdingQty * tradePrice;
+  })();
 
   if (stockLoading) {
     return (
@@ -336,6 +469,22 @@ export default function StockDetailPage({ params }: Props) {
         <StockChart candles={candles} loading={chartLoading} />
       </section>
 
+      {stockReservedOrders.length > 0 && (() => {
+        const first = stockReservedOrders[0];
+        const hhmm = new Date(first.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+        const typeLabel = first.orderType === "LIMIT" ? "지정가" : "예약";
+        const tradeLabel = first.tradeType === "BUY" ? "매수" : "매도";
+        const rest = stockReservedOrders.length - 1;
+        return (
+          <button className={styles.reservedSummaryBar} onClick={() => setShowReservedList(true)}>
+            <RiTimerLine size={16} className={styles.reservedSummaryIcon} />
+            <span className={styles.reservedSummaryText}>{hhmm} {typeLabel} {tradeLabel}</span>
+            {rest > 0 && <span className={styles.reservedSummaryMore}>외 {rest}건</span>}
+            <span className={styles.reservedSummaryArrow}>›</span>
+          </button>
+        );
+      })()}
+
       <section className={styles.section}>
         <div className={styles.aiCard}>
           <div className={styles.aiHeader}>
@@ -398,37 +547,126 @@ export default function StockDetailPage({ params }: Props) {
       </section>
 
       <div className={styles.tradeBar}>
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => openModal("sell", stock.price ?? 0)}
-        >
-          매도
-        </Button>
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={() => openModal("buy", stock.price ?? 0)}
-        >
-          매수
-        </Button>
+        <div className={styles.tradeBtnRow}>
+          <div className={styles.tradeBtnFlex}>
+            <Button
+              variant="outline"
+              size="lg"
+              fullWidth
+              onClick={() => openModal("sell", stock.price ?? 0)}
+            >
+              매도
+            </Button>
+          </div>
+          <div className={styles.tradeBtnFlex}>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => openModal("buy", stock.price ?? 0)}
+            >
+              매수
+            </Button>
+          </div>
+          <button className={styles.reservedIconBtn} onClick={() => void openReservedModal()}>
+            <RiTimerLine size={20} />
+          </button>
+        </div>
       </div>
+
+      {showReservedList && (
+        <div className={styles.modal} onClick={closeModal}>
+          <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHandle} />
+            <h3 className={styles.modalTitle}>{stock.name} 예약 주문</h3>
+            <div className={styles.reservedListWrap}>
+              {stockReservedOrders.map((o) => {
+                const hhmm = new Date(o.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+                const typeLabel = o.orderType === "LIMIT" ? "지정가" : "예약";
+                const tradeLabel = o.tradeType === "BUY" ? "매수" : "매도";
+                const isBuy = o.tradeType === "BUY";
+                const isPending = o.status === "PENDING";
+                const STATUS_LABEL: Record<string, string> = { PENDING: "대기", EXECUTED: "체결", CANCELLED: "취소", FAILED: "실패" };
+                return (
+                  <div key={o.id} className={styles.reservedListItem}>
+                    <div className={styles.reservedListLeft}>
+                      <span className={[styles.tradeBadge, isBuy ? styles.tradeBadgeBuy : styles.tradeBadgeSell].join(" ")}>
+                        {tradeLabel}
+                      </span>
+                      <div>
+                        <p className={styles.reservedListType}>{typeLabel}{o.targetPrice != null ? ` · ${formatPrice(o.targetPrice)}` : ""}</p>
+                        <p className={styles.reservedListTime}>{hhmm}</p>
+                      </div>
+                    </div>
+                    <div className={styles.reservedListRight}>
+                      <span className={[styles.reservedListStatus, styles[`reservedListStatus${o.status}`]].join(" ")}>
+                        {STATUS_LABEL[o.status]}
+                      </span>
+                      {isBuy && o.amount != null && <p className={styles.reservedListMeta}>{formatPrice(o.amount)}</p>}
+                      {!isBuy && o.quantity != null && <p className={styles.reservedListMeta}>{o.quantity}주</p>}
+                      {isPending && (
+                        <button
+                          className={styles.reservedListCancelBtn}
+                          onClick={() => void handleCancelStockReserved(o.id)}
+                          disabled={cancellingReservedId === o.id}
+                        >
+                          {cancellingReservedId === o.id ? "취소 중" : "취소"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {(showBuy || showSell) && (
         <div className={styles.modal} onClick={closeModal}>
           <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHandle} />
-            <h3 className={styles.modalTitle}>
-              {stock.name} {showBuy ? "매수" : "매도"}
-            </h3>
-
-            <div className={styles.modalRow}>
-              <span className={styles.modalLabel}>체결 가격</span>
-              <div className={styles.modalValueGroup}>
-                <span className={styles.modalValue}>{formatPrice(tradePrice)}</span>
-                {isLive && <span className={styles.modalPriceNote}>주문 시점 가격 고정</span>}
+            <div className={styles.modalTitleRow}>
+              <h3 className={styles.modalTitle}>
+                {stock.name} {showBuy ? "매수" : "매도"}
+              </h3>
+              <div className={styles.orderModeRow}>
+                <button
+                  className={[styles.orderModeChip, orderMode === "market" ? styles.orderModeActive : ""].join(" ")}
+                  onClick={() => { setOrderMode("market"); setLimitTargetPrice(""); }}
+                >
+                  시장가
+                </button>
+                <button
+                  className={[styles.orderModeChip, orderMode === "limit" ? styles.orderModeActive : ""].join(" ")}
+                  onClick={() => setOrderMode("limit")}
+                >
+                  지정가
+                </button>
               </div>
             </div>
+
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>현재가</span>
+              <div className={styles.modalValueGroup}>
+                <span className={styles.modalValue}>{formatPrice(tradePrice)}</span>
+                {isLive && <span className={styles.modalPriceNote}>실시간</span>}
+              </div>
+            </div>
+
+            {orderMode === "limit" && (
+              <div className={styles.modalRow}>
+                <span className={styles.modalLabel}>목표가</span>
+                <input
+                  className={styles.amountInput}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={limitTargetPrice}
+                  onChange={(e) => setLimitTargetPrice(e.target.value.replace(/[^\d.]/g, ""))}
+                />
+              </div>
+            )}
 
             {modalInfoLoading ? (
               <div className={styles.modalLoadingRow}>
@@ -438,47 +676,78 @@ export default function StockDetailPage({ params }: Props) {
             ) : (
               <>
                 {showBuy && (
-                  <div className={styles.modalRow}>
-                    <span className={styles.modalLabel}>가용 현금</span>
-                    <span className={styles.modalValue}>
-                      {cashBalance !== null ? formatPrice(cashBalance) : "—"}
-                    </span>
-                  </div>
+                  <>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>가용 현금</span>
+                      <span className={styles.modalValue}>
+                        {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                      </span>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>보유 수량</span>
+                      <span className={styles.modalValue}>
+                        {holdingQty > 0 ? `${holdingQty}주` : "없음"}
+                      </span>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>수량</span>
+                      <div className={styles.qtyRow}>
+                        <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(-1)}>-</button>
+                        <span className={styles.qtyDisplay}>{toQtyStr(buyAmount, effectivePrice)}</span>
+                        <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(1)}>+</button>
+                      </div>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>투자 금액</span>
+                      <input
+                        className={styles.amountInput}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={buyAmount}
+                        onChange={(e) => setBuyAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                      />
+                    </div>
+                  </>
                 )}
 
                 {showSell && (
-                  <div className={styles.modalRow}>
-                    <span className={styles.modalLabel}>보유 수량</span>
-                    <span className={styles.modalValue}>
-                      {holdingQty > 0 ? `${holdingQty}주` : "보유 없음"}
-                    </span>
-                  </div>
+                  <>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>가용 현금</span>
+                      <span className={styles.modalValue}>
+                        {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                      </span>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>보유 수량</span>
+                      <span className={styles.modalValue}>
+                        {holdingQty > 0 ? `${holdingQty}주` : "보유 없음"}
+                      </span>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>수량</span>
+                      <div className={styles.qtyRow}>
+                        <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(-1)}>-</button>
+                        <span className={styles.qtyDisplay}>{toQtyStr(sellAmount, effectivePrice)}</span>
+                        <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(1)}>+</button>
+                      </div>
+                    </div>
+                    <div className={styles.modalRow}>
+                      <span className={styles.modalLabel}>매도 금액</span>
+                      <input
+                        className={styles.amountInput}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={sellAmount}
+                        onChange={(e) => setSellAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                      />
+                    </div>
+                  </>
                 )}
-
-                <div className={styles.modalRow}>
-                  <span className={styles.modalLabel}>
-                    수량
-                    {showBuy && maxBuyQty !== null && (
-                      <span className={styles.modalLabelHint}>최대 {maxBuyQty}주</span>
-                    )}
-                  </span>
-                  <div className={styles.qtyRow}>
-                    <button className={styles.qtyBtn} onClick={() => handleQtyStep(-1)}>-</button>
-                    <input
-                      className={styles.qtyInput}
-                      value={qty}
-                      onChange={(e) => handleQtyChange(e.target.value)}
-                    />
-                    <button className={styles.qtyBtn} onClick={() => handleQtyStep(1)}>+</button>
-                  </div>
-                </div>
               </>
             )}
-
-            <div className={styles.modalRow}>
-              <span className={styles.modalLabel}>총 금액</span>
-              <span className={styles.modalTotal}>{formatPrice(tradePrice * Number(qty))}</span>
-            </div>
 
             <div className={styles.aiInModal}>
               <div className={styles.aiInModalHeader}>
@@ -510,9 +779,93 @@ export default function StockDetailPage({ params }: Props) {
               size="lg"
               fullWidth
               onClick={handleTrade}
-              disabled={tradeLoading || modalInfoLoading || (showSell && !modalInfoLoading && holdingQty === 0)}
+              disabled={
+                tradeLoading || modalInfoLoading ||
+                (showBuy && isBuyDisabled) ||
+                (showSell && isSellDisabled)
+              }
             >
-              {tradeLoading ? "처리 중..." : showBuy ? "매수 주문" : "매도 주문"}
+              {tradeLoading ? "처리 중..." : orderMode === "limit"
+                ? (showBuy ? "지정가 매수" : "지정가 매도")
+                : (showBuy ? "매수 주문" : "매도 주문")}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showReserved && (
+        <div className={styles.modal} onClick={closeModal}>
+          <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHandle} />
+            <h3 className={styles.modalTitle}>예약 주문</h3>
+
+            <div className={styles.tradeModeToggle}>
+              <button
+                className={[styles.tradeModeBtn, reservedTradeType === "BUY" ? styles.tradeModeBuy : ""].join(" ")}
+                onClick={() => { setReservedTradeType("BUY"); setReservedAmount(""); }}
+              >
+                매수
+              </button>
+              <button
+                className={[styles.tradeModeBtn, reservedTradeType === "SELL" ? styles.tradeModeSell : ""].join(" ")}
+                onClick={() => { setReservedTradeType("SELL"); setReservedAmount(""); }}
+              >
+                매도
+              </button>
+            </div>
+
+            {modalInfoLoading ? (
+              <div className={styles.modalLoadingRow}>
+                <RiLoaderLine size={18} className={styles.modalSpinner} />
+                <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
+              </div>
+            ) : (
+              <>
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>가용 현금</span>
+                  <span className={styles.modalValue}>
+                    {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                  </span>
+                </div>
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>보유 수량</span>
+                  <span className={styles.modalValue}>
+                    {holdingQty > 0 ? `${holdingQty}주` : "없음"}
+                  </span>
+                </div>
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>수량</span>
+                  <div className={styles.qtyRow}>
+                    <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(-1)}>-</button>
+                    <span className={styles.qtyDisplay}>{toQtyStr(reservedAmount)}</span>
+                    <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(1)}>+</button>
+                  </div>
+                </div>
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>
+                    {reservedTradeType === "BUY" ? "투자 금액" : "매도 금액"}
+                  </span>
+                  <input
+                    className={styles.amountInput}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={reservedAmount}
+                    onChange={(e) => setReservedAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                  />
+                </div>
+              </>
+            )}
+
+            {reservedError && <p className={styles.modalError}>{reservedError}</p>}
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={handleReservedOrder}
+              disabled={reservedLoading || modalInfoLoading || !Number(reservedAmount)}
+            >
+              {reservedLoading ? "처리 중..." : "예약 주문"}
             </Button>
           </div>
         </div>
