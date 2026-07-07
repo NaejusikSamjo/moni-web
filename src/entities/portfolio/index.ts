@@ -4,4 +4,7 @@ export type {
   PortfolioAssetResponse,
   PortfolioHoldingItem,
   PortfolioHoldingsResponse,
+  AnalysisStatus,
+  PortfolioAnalysisCreateResponse,
+  PortfolioAnalysisResponse,
 } from "@/entities/portfolio/model/types";

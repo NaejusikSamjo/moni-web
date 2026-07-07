@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RiArrowLeftLine, RiCheckboxCircleFill } from "react-icons/ri";
+import { RiArrowLeftLine, RiCheckboxCircleFill, RiLoaderLine } from "react-icons/ri";
 import { Button, BottomSheet } from "@/shared/ui";
 import { userApi } from "@/entities/user";
 import { useAuth, TendencySurvey } from "@/features/auth";
@@ -148,7 +148,7 @@ export default function SurveyPage() {
               onClick={() => handleFinish(false)}
               disabled={loading}
             >
-              {loading ? "저장 중..." : "완료"}
+              {loading ? <RiLoaderLine size={18} className={styles.spinner} /> : "완료"}
             </Button>
             <button
               className={styles.skipBtn}

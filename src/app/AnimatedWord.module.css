@@ -8,10 +8,16 @@
   margin: -0.08em -0.04em;
 }
 
+@property --char-delay {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0ms;
+}
+
 /* 각 글자 — 아래서 위로 슬라이드 인 */
 .char {
   display: inline-block;
-  animation: charIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: charIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--char-delay) both;
 }
 
 @keyframes charIn {

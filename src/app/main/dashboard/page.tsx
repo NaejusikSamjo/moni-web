@@ -7,12 +7,17 @@ import {
   RiArrowUpSLine, RiArrowDownSLine, RiCloseLine, RiAddLine,
 } from "react-icons/ri";
 import { useAuth } from "@/features/auth";
-import { ServiceUnavailable, StockLogo, Skeleton } from "@/shared/ui";
+import { ServiceUnavailable, StockLogo, Skeleton, MarkdownText } from "@/shared/ui";
 import { stockApi } from "@/entities/stock";
 import { tradeApi } from "@/entities/trade";
-import { formatPrice } from "@/shared/lib/format";
+import { portfolioApi } from "@/entities/portfolio";
+import { paymentApi } from "@/entities/payment";
+import { aiApi, MARKET_KEYWORDS } from "@/entities/ai";
+import { RiLoaderLine } from "react-icons/ri";
+import { formatPrice, formatChangeRate } from "@/shared/lib/format";
 import type { TopVolumeStockItem, ThemeRankingResponse } from "@/entities/stock";
-import type { AccountResponse } from "@/entities/trade";
+import type { PortfolioAssetResponse } from "@/entities/portfolio";
+import type { MarketKeyword, NewsResponse } from "@/entities/ai";
 import styles from "./page.module.css";
 
 type FeedItem = {
@@ -91,24 +96,29 @@ function ThemeSkeleton() {
   );
 }
 
-function AssetSection({ account }: { account: AccountResponse }) {
-  const total = account.balance + account.totalInvestment;
+function AssetSection({ assets }: { assets: PortfolioAssetResponse }) {
+  const isPositive = assets.totalProfitLoss >= 0;
   return (
     <Link href="/main/mypage/holdings" className={styles.assetCard}>
       <div className={styles.assetRow}>
         <div className={styles.assetItem}>
           <span className={styles.assetLabel}>총 자산</span>
-          <span className={styles.assetValue}>{formatPrice(total)}</span>
+          <span className={styles.assetValue}>{formatPrice(assets.totalAsset)}</span>
         </div>
         <div className={styles.assetDivider} />
         <div className={styles.assetItem}>
           <span className={styles.assetLabel}>가용 현금</span>
-          <span className={styles.assetValue}>{formatPrice(account.balance)}</span>
+          <span className={styles.assetValue}>{formatPrice(assets.cashBalance)}</span>
         </div>
       </div>
       <div className={styles.assetReturnRow}>
-        <span className={styles.assetReturnLabel}>투자금</span>
-        <span className={styles.assetReturnValue}>{formatPrice(account.totalInvestment)}</span>
+        <span className={styles.assetReturnLabel}>평가 손익</span>
+        <span className={[styles.assetReturnValue, isPositive ? "text-up" : "text-down"].join(" ")}>
+          {isPositive ? "+" : ""}{formatPrice(assets.totalProfitLoss)}
+        </span>
+        <span className={[styles.assetReturnRate, isPositive ? "text-up" : "text-down"].join(" ")}>
+          {formatChangeRate(assets.totalReturnRate)}
+        </span>
       </div>
     </Link>
   );
@@ -141,6 +151,111 @@ function ThemeSection({ themes }: { themes: ThemeRankingResponse[] }) {
 }
 
 
+function NewsFeedSection() {
+  const [newsList, setNewsList] = useState<NewsResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    aiApi.getNewsList()
+      .then((res) => setNewsList(res.content))
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className={styles.newsSkeletonWrap}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={styles.newsSkeletonItem}>
+            <div className={styles.newsSkeletonLine} />
+            <div className={styles.newsSkeletonLine} data-w="78" />
+            <div className={styles.newsSkeletonMeta} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (failed || newsList.length === 0) {
+    return <ServiceUnavailable message="뉴스 피드를 불러올 수 없습니다" />;
+  }
+
+  return (
+    <div className={styles.newsFeedList}>
+      {newsList.map((item, i) => (
+        <div key={i} className={styles.newsFeedItem}>
+          <p className={styles.newsFeedTitle}>{item.title}</p>
+          <div className={styles.newsFeedMeta}>
+            <span className={styles.newsFeedSource}>{item.source}</span>
+            <span className={styles.newsFeedDate}>{item.published_at.slice(0, 10).replace(/-/g, ".")}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MarketNewsSection() {
+  const [selectedKeyword, setSelectedKeyword] = useState<MarketKeyword | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSelect = async (keyword: MarketKeyword) => {
+    if (loading) return;
+    setSelectedKeyword(keyword);
+    setSummary(null);
+    setError(false);
+    setLoading(true);
+    try {
+      const res = await aiApi.createMarketAnalysis(keyword);
+      setSummary(res.summary.replace(/\. (\d+)\. /g, ".\n\n$1. "));
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.marketNewsCard}>
+      <div className={styles.marketKeywordRow}>
+        {MARKET_KEYWORDS.map(({ value, label }) => (
+          <button
+            key={value}
+            className={[
+              styles.marketKeywordChip,
+              selectedKeyword === value ? styles.marketKeywordChipActive : "",
+            ].join(" ")}
+            onClick={() => { void handleSelect(value); }}
+            disabled={loading}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {loading && (
+        <div className={styles.marketLoading}>
+          <RiLoaderLine size={16} className={styles.spinner} />
+          <span>AI가 뉴스를 분석하는 중...</span>
+        </div>
+      )}
+      {!loading && error && (
+        <p className={styles.marketError}>분석 결과를 불러오지 못했어요</p>
+      )}
+      {!loading && summary && (
+        <div className={styles.marketSummary}>
+          <MarkdownText text={summary} />
+        </div>
+      )}
+      {!loading && !summary && !error && !selectedKeyword && (
+        <p className={styles.marketHint}>키워드를 선택하면 AI가 시장 뉴스를 분석해드려요</p>
+      )}
+    </div>
+  );
+}
+
 function PopularSection({ stocks }: { stocks: TopVolumeStockItem[] }) {
   return (
     <div className={styles.popularList}>
@@ -167,7 +282,7 @@ function PopularSection({ stocks }: { stocks: TopVolumeStockItem[] }) {
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const displayName = (user?.nickname ?? user?.name ?? "사용자").split("#")[0];
-  const plan: "free" | "ai-plus" = "free";
+  const [plan, setPlan] = useState<"free" | "ai-plus" | null>(null);
 
   const [feed, setFeed] = useState<FeedItem[]>(DEFAULT_FEED);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -177,7 +292,7 @@ export default function DashboardPage() {
   const [popularLoading, setPopularLoading] = useState(true);
   const [themes, setThemes] = useState<ThemeRankingResponse[]>([]);
   const [themesLoading, setThemesLoading] = useState(true);
-  const [account, setAccount] = useState<AccountResponse | null | undefined>(undefined);
+  const [assets, setAssets] = useState<PortfolioAssetResponse | null | undefined>(undefined);
   const [creatingAccount, setCreatingAccount] = useState(false);
 
   useEffect(() => {
@@ -195,14 +310,18 @@ export default function DashboardPage() {
 
     stockApi.getTopVolume().then((res) => setPopularStocks(res.stocks ?? [])).catch(() => {}).finally(() => setPopularLoading(false));
     stockApi.getThemes().then(setThemes).catch(() => {}).finally(() => setThemesLoading(false));
-    tradeApi.getAccount().then(setAccount).catch(() => setAccount(null));
+    portfolioApi.getAssets().then(setAssets).catch(() => setAssets(null));
+    paymentApi.getSubscriptionStatus()
+      .then((res) => { setPlan(res.subscribed ? "ai-plus" : "free"); })
+      .catch(() => { setPlan("free"); });
   }, []);
 
   const handleCreateAccount = async () => {
     setCreatingAccount(true);
     try {
-      const created = await tradeApi.createAccount();
-      setAccount(created);
+      await tradeApi.createAccount();
+      const newAssets = await portfolioApi.getAssets();
+      setAssets(newAssets);
     } catch { /* ignore */ } finally {
       setCreatingAccount(false);
     }
@@ -252,9 +371,9 @@ export default function DashboardPage() {
   const sectionContent = (id: string) => {
     switch (id) {
       case "asset":
-        if (account === undefined) return <AssetSkeleton />;
-        if (!account) return <ServiceUnavailable message="총 자산 현황을 불러올 수 없습니다" />;
-        return <AssetSection account={account} />;
+        if (assets === undefined) return <AssetSkeleton />;
+        if (!assets) return <ServiceUnavailable message="총 자산 현황을 불러올 수 없습니다" />;
+        return <AssetSection assets={assets} />;
       case "popular":
         if (popularLoading) return <PopularSkeleton />;
         if (!popularStocks.length) return <ServiceUnavailable message="인기 종목 정보를 불러올 수 없습니다" />;
@@ -263,13 +382,12 @@ export default function DashboardPage() {
         if (themesLoading) return <ThemeSkeleton />;
         if (!themes.length) return <ServiceUnavailable message="테마 정보를 불러올 수 없습니다" />;
         return <ThemeSection themes={themes} />;
-      default: {
-        const msgs: Record<string, string> = {
-          "news-ai": "AI 뉴스 요약을 불러올 수 없습니다",
-          news:     "뉴스 피드를 불러올 수 없습니다",
-        };
-        return <ServiceUnavailable message={msgs[id] ?? "불러올 수 없습니다"} />;
-      }
+      case "news":
+        return <NewsFeedSection />;
+      case "news-ai":
+        return <MarketNewsSection />;
+      default:
+        return <ServiceUnavailable message="불러올 수 없습니다" />;
     }
   };
 
@@ -325,13 +443,15 @@ export default function DashboardPage() {
               <span className={styles.greetingName}>
                 {displayName}<span className={styles.greetingNim}>님</span>
               </span>
-              <span className={styles.planBadge} data-plan={plan}>
-                {plan === "free" ? "free" : "AI 플러스"}
-              </span>
+              {plan !== null && (
+                <span className={styles.planBadge} data-plan={plan}>
+                  {plan === "free" ? "free" : "AI+"}
+                </span>
+              )}
             </div>
             <p className={styles.greetingSub}>좋은 하루 보내세요 ☀️</p>
 
-            {account === null && (
+            {assets === null && (
               <button
                 className={styles.feedCard}
                 onClick={handleCreateAccount}

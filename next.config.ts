@@ -3,18 +3,32 @@ import type { NextConfig } from "next";
 const stockLogoBaseUrl = process.env.NEXT_PUBLIC_STOCK_LOGO_BASE_URL;
 const stockLogoUrl = stockLogoBaseUrl ? new URL(stockLogoBaseUrl) : null;
 
+const cdnBaseUrl = process.env.NEXT_PUBLIC_CDN_BASE_URL;
+const cdnUrl = cdnBaseUrl ? new URL(cdnBaseUrl) : null;
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["172.30.1.60", "reseal-geiger-untried.ngrok-free.dev"],
   images: {
-    remotePatterns: stockLogoUrl
-      ? [
-          {
-            protocol: stockLogoUrl.protocol.replace(":", "") as "https" | "http",
-            hostname: stockLogoUrl.hostname,
-            pathname: stockLogoUrl.pathname.replace(/[^/]+$/, "") + "**",
-          },
-        ]
-      : [],
+    remotePatterns: [
+      ...(stockLogoUrl
+        ? [
+            {
+              protocol: stockLogoUrl.protocol.replace(":", "") as "https" | "http",
+              hostname: stockLogoUrl.hostname,
+              pathname: stockLogoUrl.pathname.replace(/[^/]+$/, "") + "**",
+            },
+          ]
+        : []),
+      ...(cdnUrl
+        ? [
+            {
+              protocol: cdnUrl.protocol.replace(":", "") as "https" | "http",
+              hostname: cdnUrl.hostname,
+              pathname: "/profiles/**",
+            },
+          ]
+        : []),
+    ],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

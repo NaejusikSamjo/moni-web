@@ -1,9 +1,13 @@
-export function formatPrice(value: number): string {
-  return value.toLocaleString("ko-KR") + "원";
+const KO_FORMAT = new Intl.NumberFormat("ko-KR");
+
+export function formatPrice(value: number | null | undefined): string {
+  if (value == null) return "—";
+  return KO_FORMAT.format(value) + "원";
 }
 
-export function formatNumber(value: number): string {
-  return value.toLocaleString("ko-KR");
+export function formatNumber(value: number | null | undefined): string {
+  if (value == null) return "—";
+  return KO_FORMAT.format(value);
 }
 
 export function formatChangeRate(rate: number): string {

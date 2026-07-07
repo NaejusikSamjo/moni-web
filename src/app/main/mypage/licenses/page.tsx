@@ -34,18 +34,18 @@ const LICENSES = [
     url: "https://react-icons.github.io/react-icons",
   },
   {
-    name: "TypeScript",
-    version: "6.0.3",
-    license: "Apache-2.0",
-    author: "Microsoft Corporation",
-    url: "https://www.typescriptlang.org",
-  },
-  {
     name: "Lightweight Charts",
     version: "5.2.0",
     license: "Apache-2.0",
     author: "TradingView, Inc.",
     url: "https://tradingview.github.io/lightweight-charts",
+  },
+  {
+    name: "react-easy-crop",
+    version: "6.0.2",
+    license: "MIT",
+    author: "Valentin Hervieu",
+    url: "https://github.com/ValentinH/react-easy-crop",
   },
 ];
 

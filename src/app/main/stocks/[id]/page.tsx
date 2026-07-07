@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, use, type CSSProperties } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { RiArrowLeftLine, RiHeartLine, RiHeartFill } from "react-icons/ri";
+import { RiArrowLeftLine, RiHeartLine, RiHeartFill, RiLoaderLine } from "react-icons/ri";
 import { stockApi, StockChart } from "@/entities/stock";
 import { tradeApi } from "@/entities/trade";
+import { portfolioApi } from "@/entities/portfolio";
 import { aiApi } from "@/entities/ai";
 import { userApi } from "@/entities/user";
 import { getStockInfo } from "@/shared/data/stockMaster";
@@ -13,7 +14,7 @@ import { formatPrice } from "@/shared/lib/format";
 import { Badge, Button, MarkdownText, StockLogo } from "@/shared/ui";
 import { ApiException } from "@/shared/api/types";
 import type { StockResponse, ChartIndex, CandleData } from "@/entities/stock";
-import type { CompanyIssueResponse } from "@/entities/ai";
+import type { CompanyIssueResponse, NewsResponse } from "@/entities/ai";
 import styles from "./page.module.css";
 
 interface Props { params: Promise<{ id: string }> }
@@ -39,13 +40,23 @@ export default function StockDetailPage({ params }: Props) {
   const [chartLoading, setChartLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<CompanyIssueResponse | null>(null);
   const [aiStatus, setAiStatus] = useState<"loading" | "done" | "unsupported">("loading");
+  const [newsList, setNewsList] = useState<NewsResponse[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
+
   const [showBuy, setShowBuy] = useState(false);
   const [showSell, setShowSell] = useState(false);
+  const [tradePrice, setTradePrice] = useState(0);
+  const [cashBalance, setCashBalance] = useState<number | null>(null);
+  const [holdingQty, setHoldingQty] = useState<number>(0);
+  const [modalInfoLoading, setModalInfoLoading] = useState(false);
   const [qty, setQty] = useState("1");
   const [tradeLoading, setTradeLoading] = useState(false);
   const [tradeError, setTradeError] = useState<string | null>(null);
+
   const aiCalledRef = useRef(false);
+  const modalOpenRef = useRef(false);
 
   const isMarketOpen = () => {
     const now = new Date();
@@ -66,47 +77,72 @@ export default function StockDetailPage({ params }: Props) {
     setAiAnalysis(null);
     if (!aiCalledRef.current) {
       aiCalledRef.current = true;
-      aiApi.getIssueAnalysis(id)
-        .then(async (res) => {
-          if (res) {
-            setAiAnalysis(res);
-            setAiStatus("done");
-          } else {
-            try {
-              const created = await aiApi.createIssueAnalysis(id);
-              setAiAnalysis(created);
-              setAiStatus("done");
-            } catch {
-              // eslint-disable-next-line no-console
-              console.log(`[없는 종목] AI 분석 미지원: ${id}`);
-              setAiStatus("unsupported");
-            }
-          }
-        })
-        .catch(() => setAiStatus("unsupported"));
+      void (async () => {
+        const [watchRes, analysisRes] = await Promise.allSettled([
+          aiApi.getWatchCompanies(),
+          aiApi.getIssueAnalysis(id),
+        ]);
+
+        const watchList = watchRes.status === "fulfilled" ? watchRes.value : [];
+        // watchList가 비어있으면(API 실패) 지원 여부 불명 → 허용으로 간주
+        const isSupported = watchList.length === 0 || watchList.some((c) => c.ticker === id);
+
+        if (!isSupported) {
+          setAiStatus("unsupported");
+          return;
+        }
+
+        const cached = analysisRes.status === "fulfilled" ? analysisRes.value : null;
+        if (cached) {
+          setAiAnalysis(cached);
+          setAiStatus("done");
+          return;
+        }
+
+        try {
+          const created = await aiApi.createIssueAnalysis(id);
+          setAiAnalysis(created);
+          setAiStatus("done");
+        } catch {
+          setAiStatus("unsupported");
+        }
+      })();
     }
 
     userApi.getWatchlist().then((items) => {
       setIsFavorite(items.some((i) => i.stockCode === id));
     }).catch(() => {});
+
+    setNewsLoading(true);
+    setNewsList([]);
+    aiApi.getNewsList({ ticker: id })
+      .then((res) => setNewsList(res.content))
+      .catch(() => {})
+      .finally(() => setNewsLoading(false));
   }, [id]);
 
   useEffect(() => {
     if (!isLive) return;
 
     const tick = () => {
-      if (document.hidden) return;
-      stockApi.getStockDetail(id).then(setStock).catch(() => {});
+      if (document.hidden || modalOpenRef.current) return;
+      setLiveRefreshing(true);
+      stockApi.getStockDetail(id)
+        .then(setStock)
+        .catch(() => {})
+        .finally(() => setLiveRefreshing(false));
       stockApi.getChart(id, activeChart)
         .then((res) => setCandles(res.candles ?? []))
         .catch(() => {});
     };
 
-    const interval = setInterval(tick, 15000);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+    const interval = setInterval(tick, 5000);
+    const onVisibility = () => { if (!document.hidden) tick(); };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [isLive, id, activeChart]);
 
@@ -129,19 +165,78 @@ export default function StockDetailPage({ params }: Props) {
     }
   };
 
+  const openModal = async (type: "buy" | "sell", currentPrice: number) => {
+    modalOpenRef.current = true;
+    setTradePrice(currentPrice);
+    setQty("1");
+    setTradeError(null);
+    setCashBalance(null);
+    setHoldingQty(0);
+    setModalInfoLoading(true);
+
+    if (type === "buy") {
+      setShowBuy(true);
+      setShowSell(false);
+    } else {
+      setShowSell(true);
+      setShowBuy(false);
+    }
+
+    const [assetsResult, holdingResult] = await Promise.allSettled([
+      portfolioApi.getAssets(),
+      tradeApi.getHolding(id),
+    ]);
+
+    if (assetsResult.status === "fulfilled" && assetsResult.value) {
+      setCashBalance(assetsResult.value.cashBalance);
+    }
+    if (holdingResult.status === "fulfilled") {
+      setHoldingQty(holdingResult.value.quantity);
+    }
+    setModalInfoLoading(false);
+  };
+
+  const closeModal = () => {
+    modalOpenRef.current = false;
+    setShowBuy(false);
+    setShowSell(false);
+  };
+
+  const maxBuyQty = cashBalance !== null && tradePrice > 0
+    ? Math.floor(cashBalance / tradePrice)
+    : null;
+
+  const handleQtyChange = (raw: string) => {
+    const n = Number(raw.replace(/\D/g, "") || "1");
+    if (showBuy && maxBuyQty !== null) {
+      setQty(String(Math.min(n, Math.max(maxBuyQty, 1))));
+    } else if (showSell) {
+      setQty(String(Math.min(n, Math.max(holdingQty, 1))));
+    } else {
+      setQty(String(n));
+    }
+  };
+
+  const handleQtyStep = (delta: number) => {
+    const current = Number(qty);
+    const next = current + delta;
+    if (next < 1) return;
+    if (showBuy && maxBuyQty !== null && next > maxBuyQty) return;
+    if (showSell && next > holdingQty) return;
+    setQty(String(next));
+  };
+
   const handleTrade = async () => {
-    if (!stock) return;
     setTradeError(null);
     setTradeLoading(true);
     try {
       const quantity = Number(qty);
       if (showBuy) {
-        await tradeApi.buyStock({ ticker: id, price: stock.price, quantity });
+        await tradeApi.buyStock({ ticker: id, price: tradePrice, quantity });
       } else {
-        await tradeApi.sellStock({ ticker: id, price: stock.price, quantity });
+        await tradeApi.sellStock({ ticker: id, price: tradePrice, quantity });
       }
-      setShowBuy(false);
-      setShowSell(false);
+      closeModal();
     } catch (err) {
       setTradeError(err instanceof ApiException ? err.message : "주문 중 오류가 발생했습니다.");
     } finally {
@@ -208,7 +303,9 @@ export default function StockDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-        <p className={styles.price}>{formatPrice(stock.price)}</p>
+        <p className={[styles.price, liveRefreshing ? styles.priceRefreshing : ""].join(" ")}>
+          {formatPrice(stock.price)}
+        </p>
       </section>
 
       <section className={styles.chartSection}>
@@ -255,11 +352,11 @@ export default function StockDetailPage({ params }: Props) {
           </div>
           {aiStatus === "loading" && (
             <div className={styles.aiSkeletonWrap}>
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "100%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "88%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "94%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "76%" } as CSSProperties} />
-              <div className={styles.aiSkeletonLine} style={{ "--line-width": "60%" } as CSSProperties} />
+              <div className={styles.aiSkeletonLine} />
+              <div className={styles.aiSkeletonLine} data-w="88" />
+              <div className={styles.aiSkeletonLine} data-w="94" />
+              <div className={styles.aiSkeletonLine} data-w="76" />
+              <div className={styles.aiSkeletonLine} data-w="60" />
             </div>
           )}
           {aiStatus === "done" && aiAnalysis && (
@@ -271,56 +368,116 @@ export default function StockDetailPage({ params }: Props) {
         </div>
       </section>
 
+      <section className={styles.section}>
+        <div className={styles.newsCard}>
+          <p className={styles.newsCardTitle}>관련 뉴스</p>
+          {newsLoading ? (
+            <div className={styles.newsSkeletonWrap}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={styles.newsSkeletonItem}>
+                  <div className={styles.newsSkeletonLine} />
+                  <div className={styles.newsSkeletonLine} data-w="80" />
+                  <div className={styles.newsSkeletonMeta} />
+                </div>
+              ))}
+            </div>
+          ) : newsList.length === 0 ? (
+            <p className={styles.newsEmpty}>관련 뉴스가 없습니다</p>
+          ) : (
+            newsList.map((item, i) => (
+              <div key={i} className={styles.newsItem}>
+                <p className={styles.newsTitle}>{item.title}</p>
+                <div className={styles.newsBottom}>
+                  <span className={styles.newsSource}>{item.source}</span>
+                  <span className={styles.newsTime}>{item.published_at.slice(0, 10).replace(/-/g, ".")}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
       <div className={styles.tradeBar}>
         <Button
           variant="outline"
           size="lg"
-          onClick={() => { setShowSell(true); setShowBuy(false); setTradeError(null); }}
+          onClick={() => openModal("sell", stock.price ?? 0)}
         >
           매도
         </Button>
         <Button
           variant="primary"
           size="lg"
-          onClick={() => { setShowBuy(true); setShowSell(false); setTradeError(null); }}
+          onClick={() => openModal("buy", stock.price ?? 0)}
         >
           매수
         </Button>
       </div>
 
       {(showBuy || showSell) && (
-        <div className={styles.modal} onClick={() => { setShowBuy(false); setShowSell(false); }}>
+        <div className={styles.modal} onClick={closeModal}>
           <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHandle} />
             <h3 className={styles.modalTitle}>
               {stock.name} {showBuy ? "매수" : "매도"}
             </h3>
+
             <div className={styles.modalRow}>
-              <span className={styles.modalLabel}>현재가</span>
-              <span className={styles.modalValue}>{formatPrice(stock.price)}</span>
-            </div>
-            <div className={styles.modalRow}>
-              <span className={styles.modalLabel}>수량</span>
-              <div className={styles.qtyRow}>
-                <button
-                  className={styles.qtyBtn}
-                  onClick={() => setQty(String(Math.max(1, Number(qty) - 1)))}
-                >
-                  -
-                </button>
-                <input
-                  className={styles.qtyInput}
-                  value={qty}
-                  onChange={(e) => setQty(e.target.value.replace(/\D/g, "") || "1")}
-                />
-                <button className={styles.qtyBtn} onClick={() => setQty(String(Number(qty) + 1))}>
-                  +
-                </button>
+              <span className={styles.modalLabel}>체결 가격</span>
+              <div className={styles.modalValueGroup}>
+                <span className={styles.modalValue}>{formatPrice(tradePrice)}</span>
+                {isLive && <span className={styles.modalPriceNote}>주문 시점 가격 고정</span>}
               </div>
             </div>
+
+            {modalInfoLoading ? (
+              <div className={styles.modalLoadingRow}>
+                <RiLoaderLine size={18} className={styles.modalSpinner} />
+                <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
+              </div>
+            ) : (
+              <>
+                {showBuy && (
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>가용 현금</span>
+                    <span className={styles.modalValue}>
+                      {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                    </span>
+                  </div>
+                )}
+
+                {showSell && (
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>보유 수량</span>
+                    <span className={styles.modalValue}>
+                      {holdingQty > 0 ? `${holdingQty}주` : "보유 없음"}
+                    </span>
+                  </div>
+                )}
+
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>
+                    수량
+                    {showBuy && maxBuyQty !== null && (
+                      <span className={styles.modalLabelHint}>최대 {maxBuyQty}주</span>
+                    )}
+                  </span>
+                  <div className={styles.qtyRow}>
+                    <button className={styles.qtyBtn} onClick={() => handleQtyStep(-1)}>-</button>
+                    <input
+                      className={styles.qtyInput}
+                      value={qty}
+                      onChange={(e) => handleQtyChange(e.target.value)}
+                    />
+                    <button className={styles.qtyBtn} onClick={() => handleQtyStep(1)}>+</button>
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className={styles.modalRow}>
               <span className={styles.modalLabel}>총 금액</span>
-              <span className={styles.modalTotal}>{formatPrice(stock.price * Number(qty))}</span>
+              <span className={styles.modalTotal}>{formatPrice(tradePrice * Number(qty))}</span>
             </div>
 
             <div className={styles.aiInModal}>
@@ -334,9 +491,9 @@ export default function StockDetailPage({ params }: Props) {
               </div>
               {aiStatus === "loading" && (
                 <div className={styles.aiSkeletonWrap}>
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "100%" } as CSSProperties} />
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "85%" } as CSSProperties} />
-                  <div className={styles.aiSkeletonLine} style={{ "--line-width": "70%" } as CSSProperties} />
+                  <div className={styles.aiSkeletonLine} />
+                  <div className={styles.aiSkeletonLine} data-w="85" />
+                  <div className={styles.aiSkeletonLine} data-w="70" />
                 </div>
               )}
               {aiStatus === "done" && aiAnalysis && (
@@ -353,7 +510,7 @@ export default function StockDetailPage({ params }: Props) {
               size="lg"
               fullWidth
               onClick={handleTrade}
-              disabled={tradeLoading}
+              disabled={tradeLoading || modalInfoLoading || (showSell && !modalInfoLoading && holdingQty === 0)}
             >
               {tradeLoading ? "처리 중..." : showBuy ? "매수 주문" : "매도 주문"}
             </Button>

@@ -3,7 +3,7 @@ export type ChartIndex = "MIN_1" | "MIN_3" | "MIN_5" | "MIN_10" | "MIN_30" | "MI
 export interface StockResponse {
   ticker: string;
   name: string;
-  price: number;
+  price: number | null;
 }
 
 export interface CandleData {

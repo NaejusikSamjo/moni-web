@@ -1,11 +1,31 @@
+@property --skeleton-width {
+  syntax: "<length> | <percentage> | auto";
+  inherits: false;
+  initial-value: auto;
+}
+
+@property --skeleton-height {
+  syntax: "<length> | <percentage> | auto";
+  inherits: false;
+  initial-value: auto;
+}
+
+@property --skeleton-radius {
+  syntax: "<length> | <percentage>";
+  inherits: false;
+  initial-value: 12px;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
 .skeleton {
+  width: var(--skeleton-width);
+  height: var(--skeleton-height);
+  border-radius: var(--skeleton-radius);
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
 }

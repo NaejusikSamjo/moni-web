@@ -19,6 +19,11 @@ export const metadata: Metadata = {
         icon: [{ url: "/favicon.ico" }],
         apple: [{ url: APP_ICON_APPLE, sizes: "180x180", type: "image/png" }],
     },
+    appleWebApp: {
+        capable: true,
+        title: "모니",
+        statusBarStyle: "default",
+    },
 };
 
 export const viewport: Viewport = {
