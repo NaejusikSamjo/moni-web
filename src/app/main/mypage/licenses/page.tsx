@@ -47,6 +47,13 @@ const LICENSES = [
     author: "Valentin Hervieu",
     url: "https://github.com/ValentinH/react-easy-crop",
   },
+  {
+    name: "Vercel Speed Insights",
+    version: "2.0.0",
+    license: "Apache-2.0",
+    author: "Vercel, Inc.",
+    url: "https://vercel.com/docs/speed-insights",
+  },
 ];
 
 export default function LicensesPage() {
