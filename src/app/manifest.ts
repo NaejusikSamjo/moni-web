@@ -3,7 +3,7 @@ import { APP_ICON, APP_ICON_192 } from '@/shared/config/assets'
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: '모니 - 모의 투자',
+        name: '모니',
         short_name: '모니',
         start_url: '/',
         display: 'standalone',
@@ -20,7 +20,7 @@ export default function manifest(): MetadataRoute.Manifest {
                 src: APP_ICON,
                 sizes: "512x512",
                 type: "image/png",
-                purpose: "maskable",
+                purpose: "any",
             },
         ],
     }
