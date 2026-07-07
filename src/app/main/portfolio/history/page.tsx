@@ -69,6 +69,7 @@ export default function PortfolioHistoryPage() {
       {loading ? (
         <div className={styles.loadingWrap}>
           <RiLoaderLine size={22} className={styles.spinner} />
+          <p className={styles.loadingText}>불러오는 중</p>
         </div>
       ) : items.length === 0 ? (
         <div className={styles.empty}>

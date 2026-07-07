@@ -259,24 +259,27 @@
 .bottomPad { height: 20px; }
 
 .loadMoreBtn {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 12px 0;
-  margin-top: 4px;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  padding: 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
   cursor: pointer;
-  min-height: 42px;
+  margin: 16px 0;
+  transition: background var(--transition-fast);
 }
 
+.loadMoreBtn:hover { background: var(--color-bg); }
+
 .loadMoreBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: default;
 }
 

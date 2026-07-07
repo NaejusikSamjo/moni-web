@@ -247,8 +247,8 @@ export default function HoldingsPage() {
               disabled={tradeLoadingMore}
             >
               {tradeLoadingMore
-                ? <RiLoaderLine size={16} className={styles.spinner} />
-                : "더보기"}
+                ? <><RiLoaderLine size={14} className={styles.spinner} /> 불러오는 중</>
+                : "더 보기"}
             </button>
           )}
         </section>
