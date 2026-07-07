@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useAuth } from "@/features/auth";
+import { NotificationProvider } from "@/features/notification";
 import { BottomNav } from "@/widgets/bottom-nav/BottomNav";
 import { OnboardingGuide } from "@/widgets/onboarding-guide/OnboardingGuide";
 
@@ -27,12 +28,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   const showNav = !HIDE_NAV_PATHS.some((p) => pathname.startsWith(p));
 
   return (
-    <>
+    <NotificationProvider>
       <div className="page-content">
         {children}
       </div>
       {showNav && <BottomNav />}
       <OnboardingGuide />
-    </>
+    </NotificationProvider>
   );
 }
