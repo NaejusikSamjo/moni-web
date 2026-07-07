@@ -8,8 +8,6 @@
 
   <p>초보 투자자를 위한 AI 기반 모의 투자 서비스 웹앱</p>
 
-<hr/>
-
 <p align="center">
   <a href="#프로젝트-소개">프로젝트 소개</a> &nbsp;&bull;&nbsp;
   <a href="#기술-스택">기술 스택</a> &nbsp;&bull;&nbsp;
@@ -54,8 +52,7 @@
 ## 프로젝트 구조
 
 
-FSD(Feature-Sliced Design) 레이어 구조를 따릅니다.  
-레이어 의존 방향: `app → widgets → features → entities → shared`
+FSD(Feature-Sliced Design) 레이어 구조를 따릅니다.
 
 <details>
 <summary>Directory Structure</summary>

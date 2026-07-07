@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/shared/styles/globals.css";
 import { AuthProvider } from "@/features/auth";
 import { PwaGuard } from "@/widgets/pwa-guard/PwaGuard";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </AuthProvider>
             </PwaGuard>
         </div>
+        <SpeedInsights />
         </body>
         </html>
     );
