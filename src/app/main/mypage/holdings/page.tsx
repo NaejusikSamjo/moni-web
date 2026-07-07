@@ -38,6 +38,9 @@ export default function HoldingsPage() {
   const [reservedOrders, setReservedOrders] = useState<ReservedOrderResponse[]>([]);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tradePage, setTradePage] = useState(0);
+  const [tradeIsLast, setTradeIsLast] = useState(true);
+  const [tradeLoadingMore, setTradeLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -50,7 +53,11 @@ export default function HoldingsPage() {
         ]);
 
         setHoldings(holdingsRes.status === "fulfilled" ? holdingsRes.value.content : []);
-        setTrades(tradesRes.status === "fulfilled" ? tradesRes.value.content : []);
+        if (tradesRes.status === "fulfilled") {
+          setTrades(tradesRes.value.content);
+          setTradePage(tradesRes.value.pageNumber);
+          setTradeIsLast(tradesRes.value.isLast);
+        }
         setReservedOrders(reservedRes.status === "fulfilled" ? reservedRes.value : []);
       } finally {
         setLoading(false);
@@ -68,6 +75,19 @@ export default function HoldingsPage() {
       setReservedOrders((prev) => prev.filter((o) => o.id !== orderId));
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handleLoadMoreTrades = async () => {
+    setTradeLoadingMore(true);
+    try {
+      const next = tradePage + 1;
+      const res = await tradeApi.getTrades(next, 30);
+      setTrades((prev) => [...prev, ...res.content]);
+      setTradePage(res.pageNumber);
+      setTradeIsLast(res.isLast);
+    } finally {
+      setTradeLoadingMore(false);
     }
   };
 
@@ -220,6 +240,17 @@ export default function HoldingsPage() {
               );
             })}
           </div>
+          {!tradeIsLast && (
+            <button
+              className={styles.loadMoreBtn}
+              onClick={() => void handleLoadMoreTrades()}
+              disabled={tradeLoadingMore}
+            >
+              {tradeLoadingMore
+                ? <RiLoaderLine size={16} className={styles.spinner} />
+                : "더보기"}
+            </button>
+          )}
         </section>
       )}
 

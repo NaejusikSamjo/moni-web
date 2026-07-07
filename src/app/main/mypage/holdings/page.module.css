@@ -258,6 +258,28 @@
 
 .bottomPad { height: 20px; }
 
+.loadMoreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 0;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 42px;
+}
+
+.loadMoreBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .reservedItem {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RiArrowLeftLine, RiHeartLine, RiHeartFill, RiLoaderLine, RiTimerLine } from "react-icons/ri";
@@ -68,6 +68,9 @@ export default function StockDetailPage({ params }: Props) {
   const [stockReservedOrders, setStockReservedOrders] = useState<ReservedOrderResponse[]>([]);
   const [showReservedList, setShowReservedList] = useState(false);
   const [cancellingReservedId, setCancellingReservedId] = useState<string | null>(null);
+  const [isClosingModal, setIsClosingModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; sub?: string; hiding: boolean } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const aiCalledRef = useRef(false);
   const modalOpenRef = useRef(false);
@@ -240,7 +243,21 @@ export default function StockDetailPage({ params }: Props) {
     setModalInfoLoading(false);
   };
 
+  const showToast = useCallback((message: string, sub?: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ message, sub, hiding: false });
+    toastTimerRef.current = setTimeout(() => {
+      setToast((prev) => prev ? { ...prev, hiding: true } : null);
+    }, 2200);
+  }, []);
+
   const closeModal = () => {
+    setIsClosingModal(true);
+  };
+
+  const onSheetAnimationEnd = () => {
+    if (!isClosingModal) return;
+    setIsClosingModal(false);
     modalOpenRef.current = false;
     setShowBuy(false);
     setShowSell(false);
@@ -301,13 +318,15 @@ export default function StockDetailPage({ params }: Props) {
             amount: Number(buyAmount),
           });
           setStockReservedOrders((prev) => [res, ...prev]);
+          showToast("매수 (지정가) 예약이 등록되었습니다", `목표가 ${formatPrice(Number(limitTargetPrice))}`);
         } else {
           await tradeApi.buyStock({ ticker: id, amount: Number(buyAmount) });
+          showToast("매수 (시장가) 주문이 완료되었습니다", `체결금액 ${formatPrice(Number(buyAmount))}`);
         }
       } else {
         const price = orderMode === "limit" && Number(limitTargetPrice) > 0
           ? Number(limitTargetPrice) : tradePrice;
-        const quantity = price > 0 ? Number(sellAmount) / price : 0;
+        const quantity = price > 0 ? roundQty(Number(sellAmount) / price) : 0;
         if (orderMode === "limit") {
           const res = await tradeApi.createReservedSellOrder({
             ticker: id,
@@ -316,8 +335,10 @@ export default function StockDetailPage({ params }: Props) {
             quantity,
           });
           setStockReservedOrders((prev) => [res, ...prev]);
+          showToast("매도 (지정가) 예약이 등록되었습니다", `목표가 ${formatPrice(Number(limitTargetPrice))}`);
         } else {
           await tradeApi.sellStock({ ticker: id, quantity });
+          showToast("매도 (시장가) 주문이 완료되었습니다", `${toQtyStr(sellAmount)} 매도`);
         }
       }
       closeModal();
@@ -339,14 +360,16 @@ export default function StockDetailPage({ params }: Props) {
           amount: Number(reservedAmount),
         });
         setStockReservedOrders((prev) => [res, ...prev]);
+        showToast("매수 예약이 등록되었습니다", `투자금액 ${formatPrice(Number(reservedAmount))}`);
       } else {
-        const quantity = tradePrice > 0 ? Number(reservedAmount) / tradePrice : 0;
+        const quantity = tradePrice > 0 ? roundQty(Number(reservedAmount) / tradePrice) : 0;
         const res = await tradeApi.createReservedSellOrder({
           ticker: id,
           orderType: "RESERVATION",
           quantity,
         });
         setStockReservedOrders((prev) => [res, ...prev]);
+        showToast("매도 예약이 등록되었습니다", `${toQtyStr(reservedAmount)} 매도 예약`);
       }
       closeModal();
     } catch (err) {
@@ -355,6 +378,8 @@ export default function StockDetailPage({ params }: Props) {
       setReservedLoading(false);
     }
   };
+
+  const roundQty = (qty: number) => Math.round(qty * 1e10) / 1e10;
 
   const toQtyStr = (amount: string, price?: number) => {
     const p = price ?? tradePrice;
@@ -386,6 +411,10 @@ export default function StockDetailPage({ params }: Props) {
           </button>
           <div className={styles.headerActions} />
         </header>
+        <div className={styles.pageLoadingRow}>
+          <RiLoaderLine size={22} className={styles.pageLoadingSpinner} />
+          <span className={styles.pageLoadingText}>불러오는 중</span>
+        </div>
       </div>
     );
   }
@@ -576,8 +605,8 @@ export default function StockDetailPage({ params }: Props) {
 
       {showReservedList && (
         <div className={styles.modal} onClick={closeModal}>
-          <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHandle} />
+          <div className={styles.modalSheet} data-closing={isClosingModal} onAnimationEnd={onSheetAnimationEnd} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHandle} onClick={closeModal} />
             <h3 className={styles.modalTitle}>{stock.name} 예약 주문</h3>
             <div className={styles.reservedListWrap}>
               {stockReservedOrders.map((o) => {
@@ -624,8 +653,8 @@ export default function StockDetailPage({ params }: Props) {
 
       {(showBuy || showSell) && (
         <div className={styles.modal} onClick={closeModal}>
-          <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHandle} />
+          <div className={styles.modalSheet} data-closing={isClosingModal} onAnimationEnd={onSheetAnimationEnd} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHandle} onClick={closeModal} />
             <div className={styles.modalTitleRow}>
               <h3 className={styles.modalTitle}>
                 {stock.name} {showBuy ? "매수" : "매도"}
@@ -785,9 +814,11 @@ export default function StockDetailPage({ params }: Props) {
                 (showSell && isSellDisabled)
               }
             >
-              {tradeLoading ? "처리 중..." : orderMode === "limit"
-                ? (showBuy ? "지정가 매수" : "지정가 매도")
-                : (showBuy ? "매수 주문" : "매도 주문")}
+              {tradeLoading
+                ? <RiLoaderLine size={20} className={styles.modalSpinner} />
+                : orderMode === "limit"
+                  ? (showBuy ? "지정가 매수" : "지정가 매도")
+                  : (showBuy ? "매수 주문" : "매도 주문")}
             </Button>
           </div>
         </div>
@@ -795,8 +826,8 @@ export default function StockDetailPage({ params }: Props) {
 
       {showReserved && (
         <div className={styles.modal} onClick={closeModal}>
-          <div className={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHandle} />
+          <div className={styles.modalSheet} data-closing={isClosingModal} onAnimationEnd={onSheetAnimationEnd} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHandle} onClick={closeModal} />
             <h3 className={styles.modalTitle}>예약 주문</h3>
 
             <div className={styles.tradeModeToggle}>
@@ -865,9 +896,20 @@ export default function StockDetailPage({ params }: Props) {
               onClick={handleReservedOrder}
               disabled={reservedLoading || modalInfoLoading || !Number(reservedAmount)}
             >
-              {reservedLoading ? "처리 중..." : "예약 주문"}
+              {reservedLoading ? <RiLoaderLine size={20} className={styles.modalSpinner} /> : "예약 주문"}
             </Button>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          className={styles.toast}
+          data-hiding={toast.hiding}
+          onAnimationEnd={() => { if (toast.hiding) setToast(null); }}
+        >
+          <p className={styles.toastMessage}>{toast.message}</p>
+          {toast.sub && <p className={styles.toastSub}>{toast.sub}</p>}
         </div>
       )}
     </div>
