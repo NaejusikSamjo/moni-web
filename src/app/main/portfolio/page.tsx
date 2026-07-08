@@ -25,17 +25,18 @@ type AiPhase = "loading" | "empty" | "pending" | "success" | "failed" | "error";
 interface DonutProps {
   holdings: PortfolioHoldingItem[];
   cashWeight: number;
+  stockTotalPct: number;
   returnRate: number;
 }
 
-function DonutChart({ holdings, cashWeight, returnRate }: DonutProps) {
+function DonutChart({ holdings, cashWeight, stockTotalPct, returnRate }: DonutProps) {
   const R = 56;
   const cx = 80;
   const cy = 80;
   const C = 2 * Math.PI * R;
 
   const segments = [
-    ...holdings.map((h, i) => ({ pct: h.weight, color: COLORS[i % COLORS.length] })),
+    ...holdings.map((h, i) => ({ pct: h.weight * stockTotalPct / 100, color: COLORS[i % COLORS.length] })),
     { pct: cashWeight, color: "#e5e7eb" },
   ];
 
@@ -270,8 +271,12 @@ export default function PortfolioPage() {
   };
 
   const holdings = holdingsRes?.content ?? [];
-  const stockWeight = holdings.reduce((s, h) => s + h.weight, 0);
-  const cashWeight = assets ? Math.max(0, 100 - stockWeight) : 0;
+  const cashWeight = assets && assets.totalAsset > 0
+    ? (assets.cashBalance / assets.totalAsset) * 100
+    : 0;
+  const stockTotalPct = assets && assets.totalAsset > 0
+    ? (assets.stockEvaluationAmount / assets.totalAsset) * 100
+    : 0;
 
   return (
     <div className="app-page">
@@ -560,6 +565,7 @@ export default function PortfolioPage() {
                 <DonutChart
                   holdings={holdings}
                   cashWeight={cashWeight}
+                  stockTotalPct={stockTotalPct}
                   returnRate={assets.totalReturnRate}
                 />
                 <div className={styles.legendList}>
@@ -567,7 +573,7 @@ export default function PortfolioPage() {
                     <div key={h.ticker} className={styles.legendItem}>
                       <span className={styles.legendDot} data-idx={String(i % COLORS.length)} />
                       <span className={styles.legendName}>{h.stockName || h.ticker}</span>
-                      <span className={styles.legendWeight}>{h.weight.toFixed(1)}%</span>
+                      <span className={styles.legendWeight}>{(h.weight * stockTotalPct / 100).toFixed(1)}%</span>
                     </div>
                   ))}
                   <div className={styles.legendItem}>
@@ -619,7 +625,7 @@ export default function PortfolioPage() {
                             className={styles.weightBarFill}
                             data-idx={String(i % COLORS.length)}
                             x="0" y="0"
-                            width={Math.min(100, h.weight)}
+                            width={Math.min(100, h.weight * stockTotalPct / 100)}
                             height="3"
                             rx="1.5"
                           />

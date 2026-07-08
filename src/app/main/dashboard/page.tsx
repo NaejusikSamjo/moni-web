@@ -320,6 +320,7 @@ export default function DashboardPage() {
     setCreatingAccount(true);
     try {
       await tradeApi.createAccount();
+      await portfolioApi.createPortfolio().catch(() => {});
       const newAssets = await portfolioApi.getAssets();
       setAssets(newAssets);
     } catch { /* ignore */ } finally {

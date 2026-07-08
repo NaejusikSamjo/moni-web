@@ -1,4 +1,4 @@
-export type ChartIndex = "MIN_1" | "MIN_3" | "MIN_5" | "MIN_10" | "MIN_30" | "MIN_60";
+export type ChartIndex = "MIN_1" | "MIN_3" | "MIN_5" | "MIN_10";
 
 export interface StockResponse {
   ticker: string;
