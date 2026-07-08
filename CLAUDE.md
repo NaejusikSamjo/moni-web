@@ -213,4 +213,3 @@ app-shell (position: fixed, max-width: 480px, 100dvh)
 - **`build/` 디렉토리 직접 수정 금지**
 - **인라인 스타일 금지** — 스타일 변경 시 반드시 CSS Modules 또는 CSS 변수 방식 사용
 - FSD 레이어 역방향 참조 금지 — 새 코드 작성 전 레이어 의존 방향 확인
-- `NEXT_PUBLIC_STOCK_LOGO_BASE_URL` 환경변수는 코드 내부에만 존재하며 문서화 금지 (외부 로고 CDN URL)
