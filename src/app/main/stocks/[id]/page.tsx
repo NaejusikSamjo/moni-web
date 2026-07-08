@@ -150,12 +150,9 @@ export default function StockDetailPage({ params }: Props) {
         .then(setStock)
         .catch(() => {})
         .finally(() => setLiveRefreshing(false));
-      stockApi.getChart(id, activeChart)
-        .then((res) => setCandles(res.candles ?? []))
-        .catch(() => {});
     };
 
-    const interval = setInterval(tick, 5000);
+    const interval = setInterval(tick, 10000);
     const onVisibility = () => { if (!document.hidden) tick(); };
     document.addEventListener("visibilitychange", onVisibility);
 
