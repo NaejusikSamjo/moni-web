@@ -2,6 +2,18 @@ import { API_BASE_URL } from "@/shared/config/env";
 import { ApiException } from "@/shared/api/types";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/shared/lib/token";
 
+function parseValidationMessage(message: string): string {
+  if (!message.startsWith("{") || !message.endsWith("}")) return message;
+  return message
+    .slice(1, -1)
+    .split(", ")
+    .map((pair) => {
+      const eq = pair.indexOf("=");
+      return eq !== -1 ? pair.slice(eq + 1) : pair;
+    })
+    .join(", ");
+}
+
 interface GlobalResponse<T> {
   status: number;
   message: string;
@@ -71,9 +83,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const body: GlobalResponse<T> = await res.json();
 
   if (!res.ok) {
+    const rawMessage = body.errors?.message ?? body.message ?? "알 수 없는 오류가 발생했습니다.";
     throw new ApiException(
       body.errors?.errorClassName ?? "UNKNOWN",
-      body.message ?? "알 수 없는 오류가 발생했습니다.",
+      parseValidationMessage(rawMessage),
       res.status,
     );
   }

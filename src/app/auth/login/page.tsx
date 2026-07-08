@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RiKakaoTalkFill, RiGoogleLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine } from "react-icons/ri";
+import { RiKakaoTalkFill, RiGoogleLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine, RiLoaderLine } from "react-icons/ri";
 import { Button } from "@/shared/ui";
 import { authApi } from "@/features/auth/api/authApi";
 import { userApi } from "@/entities/user";
@@ -157,7 +157,7 @@ export default function LoginPage() {
 
       <div className={styles.bottom}>
         <Button variant="primary" size="lg" fullWidth onClick={handleLogin} disabled={isBusy}>
-          {loading ? "로그인 중..." : "로그인"}
+          {loading ? <RiLoaderLine size={18} className={styles.spinner} /> : "로그인"}
         </Button>
         <p className={styles.signupRow}>
           아직 계정이 없으신가요?&nbsp;

@@ -240,9 +240,9 @@ export default function PortfolioPage() {
       setAiResult(null);
     } catch (err) {
       if (err instanceof ApiException) {
-        if (err.code === "PORTFOLIO-007") {
+        if (err.code === "PORTFOLIO-006") {
           setLimitExceeded("daily");
-        } else if (err.code === "PORTFOLIO-008") {
+        } else if (err.code === "PORTFOLIO-007") {
           setLimitExceeded("free");
         } else {
           setAiErr(err.message);
@@ -407,6 +407,11 @@ export default function PortfolioPage() {
                               : "프리미엄 회원은 더 많은 분석을 이용할 수 있어요"}
                           </p>
                         </>
+                      ) : holdings.length === 0 ? (
+                        <>
+                          <p className={styles.aiEmptyTitle}>보유중인 주식이 없어요</p>
+                          <p className={styles.aiLimitDesc}>AI 분석 전 먼저 주식을 매수해주세요</p>
+                        </>
                       ) : (
                         <>
                           <p className={styles.aiEmptyTitle}>아직 분석한 기록이 없습니다</p>
@@ -489,6 +494,8 @@ export default function PortfolioPage() {
                           <p className={styles.aiLimitSmall}>
                             {limitExceeded === "daily" ? "오늘 한도를 모두 사용했어요" : "무료 플랜 한도를 초과했어요"}
                           </p>
+                        ) : holdings.length === 0 ? (
+                          <p className={styles.aiLimitSmall}>보유 주식이 없어 재분석할 수 없어요</p>
                         ) : (
                           <button
                             className={[styles.aiActionBtn, styles.aiActionPrimary].join(" ")}
