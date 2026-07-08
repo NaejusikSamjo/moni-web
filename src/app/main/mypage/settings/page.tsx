@@ -1,28 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RiArrowLeftLine, RiArrowRightSLine } from "react-icons/ri";
+import { useNotification } from "@/features/notification";
 import styles from "./page.module.css";
-
-type ToggleItem = {
-  id: string;
-  label: string;
-  desc?: string;
-};
-
-const NOTIFICATION_ITEMS: ToggleItem[] = [
-  { id: "notif-off",   label: "알림 끄기",          desc: "모든 푸시 알림을 끕니다" },
-  { id: "night-ad",    label: "야간 광고성 수신",    desc: "오후 9시 ~ 오전 8시 광고성 알림 수신" },
-];
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [toggles, setToggles] = useState<Record<string, boolean>>({});
+  const { isDisabled, nightAd, setDisabled, setNightAd, requestPermission } = useNotification();
 
-  const toggle = (id: string) => {
-    setToggles((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleNotifToggle = async () => {
+    if (isDisabled) {
+      const granted = await requestPermission();
+      if (!granted) return;
+      setDisabled(false);
+    } else {
+      setDisabled(true);
+    }
   };
 
   return (
@@ -38,23 +33,37 @@ export default function SettingsPage() {
         <section className={styles.section}>
           <p className={styles.sectionTitle}>알림</p>
           <div className={styles.itemList}>
-            {NOTIFICATION_ITEMS.map((item) => (
-              <div key={item.id} className={styles.item}>
-                <div className={styles.itemInfo}>
-                  <span className={styles.itemLabel}>{item.label}</span>
-                  {item.desc && <span className={styles.itemDesc}>{item.desc}</span>}
-                </div>
-                <label className={styles.switchWrap} aria-label={item.label}>
-                  <input
-                    type="checkbox"
-                    className={styles.switchInput}
-                    checked={toggles[item.id] ?? false}
-                    onChange={() => toggle(item.id)}
-                  />
-                  <span className={styles.switchSlider} />
-                </label>
+            <div className={styles.item}>
+              <div className={styles.itemInfo}>
+                <span className={styles.itemLabel}>알림 활성화</span>
+                <span className={styles.itemDesc}>모든 푸시 알림을 받습니다</span>
               </div>
-            ))}
+              <label className={styles.switchWrap} aria-label="알림 활성화">
+                <input
+                  type="checkbox"
+                  className={styles.switchInput}
+                  checked={!isDisabled}
+                  onChange={handleNotifToggle}
+                />
+                <span className={styles.switchSlider} />
+              </label>
+            </div>
+
+            <div className={styles.item}>
+              <div className={styles.itemInfo}>
+                <span className={styles.itemLabel}>야간 광고성 수신</span>
+                <span className={styles.itemDesc}>오후 9시 ~ 오전 8시 광고성 알림 수신</span>
+              </div>
+              <label className={styles.switchWrap} aria-label="야간 광고성 수신">
+                <input
+                  type="checkbox"
+                  className={styles.switchInput}
+                  checked={nightAd}
+                  onChange={() => setNightAd(!nightAd)}
+                />
+                <span className={styles.switchSlider} />
+              </label>
+            </div>
           </div>
         </section>
 

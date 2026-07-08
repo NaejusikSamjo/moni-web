@@ -35,9 +35,17 @@
 /* Loading / Empty */
 .loadingWrap {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 40dvh;
+  gap: 10px;
+  height: calc(100dvh - 68px);
+  color: var(--color-text-muted);
+}
+
+.loadingText {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-muted);
 }
 

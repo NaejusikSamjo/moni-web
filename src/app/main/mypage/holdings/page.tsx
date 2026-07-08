@@ -5,22 +5,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RiArrowLeftLine, RiLoaderLine } from "react-icons/ri";
 import { tradeApi } from "@/entities/trade";
-import { stockApi } from "@/entities/stock";
+import { portfolioApi } from "@/entities/portfolio";
 import { Skeleton, StockLogo } from "@/shared/ui";
 import { formatPrice, formatChangeRate } from "@/shared/lib/format";
 import { getStockInfo } from "@/shared/data/stockMaster";
-import type { HoldingResponse, TradeResponse } from "@/entities/trade";
+import type { TradeResponse, ReservedOrderResponse, ReservedOrderStatus } from "@/entities/trade";
+import type { PortfolioHoldingItem } from "@/entities/portfolio";
 import styles from "./page.module.css";
 
-interface EnrichedHolding extends HoldingResponse {
-  stockName: string;
-  currentPrice: number;
-  evaluationAmount: number;
-  profitAmount: number;
-  profitRate: number;
-}
-
 const TRADE_TYPE_LABEL: Record<string, string> = { BUY: "매수", SELL: "매도" };
+const RESERVED_ORDER_TYPE_LABEL: Record<string, string> = { LIMIT: "지정가", RESERVATION: "예약" };
+const RESERVED_STATUS_LABEL: Record<ReservedOrderStatus, string> = {
+  PENDING: "대기",
+  EXECUTED: "체결",
+  CANCELLED: "취소",
+  FAILED: "실패",
+};
 
 function formatDateTime(iso: string) {
   const d = new Date(iso);
@@ -33,48 +33,32 @@ function formatDateTime(iso: string) {
 
 export default function HoldingsPage() {
   const router = useRouter();
-  const [holdings, setHoldings] = useState<EnrichedHolding[]>([]);
+  const [holdings, setHoldings] = useState<PortfolioHoldingItem[]>([]);
   const [trades, setTrades] = useState<TradeResponse[]>([]);
+  const [reservedOrders, setReservedOrders] = useState<ReservedOrderResponse[]>([]);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tradePage, setTradePage] = useState(0);
+  const [tradeIsLast, setTradeIsLast] = useState(true);
+  const [tradeLoadingMore, setTradeLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const [holdingsRes, tradesRes] = await Promise.allSettled([
-          tradeApi.getHoldings(0, 50),
+        const [holdingsRes, tradesRes, reservedRes] = await Promise.allSettled([
+          portfolioApi.getHoldings(0, 50),
           tradeApi.getTrades(0, 30),
+          tradeApi.getReservedOrders(),
         ]);
 
-        const rawHoldings = holdingsRes.status === "fulfilled" ? holdingsRes.value.content : [];
-        const rawTrades = tradesRes.status === "fulfilled" ? tradesRes.value.content : [];
-        setTrades(rawTrades);
-
-        if (rawHoldings.length === 0) { setHoldings([]); return; }
-
-        const stockResults = await Promise.allSettled(
-          rawHoldings.map((h) => stockApi.getStockDetail(h.ticker))
-        );
-
-        setHoldings(
-          rawHoldings.map((h, i) => {
-            const detail = stockResults[i].status === "fulfilled" ? stockResults[i].value : null;
-            const currentPrice = detail?.price ?? h.averagePrice;
-            const evaluationAmount = currentPrice * h.quantity;
-            const profitAmount = (currentPrice - h.averagePrice) * h.quantity;
-            const profitRate = h.averagePrice > 0
-              ? ((currentPrice - h.averagePrice) / h.averagePrice) * 100
-              : 0;
-            return {
-              ...h,
-              stockName: detail?.name ?? h.ticker,
-              currentPrice,
-              evaluationAmount,
-              profitAmount,
-              profitRate,
-            };
-          })
-        );
+        setHoldings(holdingsRes.status === "fulfilled" ? holdingsRes.value.content : []);
+        if (tradesRes.status === "fulfilled") {
+          setTrades(tradesRes.value.content);
+          setTradePage(tradesRes.value.pageNumber);
+          setTradeIsLast(tradesRes.value.isLast);
+        }
+        setReservedOrders(reservedRes.status === "fulfilled" ? reservedRes.value : []);
       } finally {
         setLoading(false);
       }
@@ -83,6 +67,29 @@ export default function HoldingsPage() {
   }, []);
 
   const totalEvaluation = holdings.reduce((s, h) => s + h.evaluationAmount, 0);
+
+  const handleCancelReserved = async (orderId: string) => {
+    setCancellingId(orderId);
+    try {
+      await tradeApi.cancelReservedOrder(orderId);
+      setReservedOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const handleLoadMoreTrades = async () => {
+    setTradeLoadingMore(true);
+    try {
+      const next = tradePage + 1;
+      const res = await tradeApi.getTrades(next, 30);
+      setTrades((prev) => [...prev, ...res.content]);
+      setTradePage(res.pageNumber);
+      setTradeIsLast(res.isLast);
+    } finally {
+      setTradeLoadingMore(false);
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -133,7 +140,7 @@ export default function HoldingsPage() {
               const rateClass = h.profitRate > 0 ? styles.up : h.profitRate < 0 ? styles.down : "";
               const market = getStockInfo(h.ticker)?.market;
               return (
-                <Link key={h.id} href={`/main/stocks/${h.ticker}`} className={styles.holdingItem}>
+                <Link key={h.ticker} href={`/main/stocks/${h.ticker}`} className={styles.holdingItem}>
                   <StockLogo code={h.ticker} name={h.stockName} size={42} />
                   <div className={styles.holdingInfo}>
                     <p className={styles.holdingName}>{h.stockName}</p>
@@ -145,8 +152,8 @@ export default function HoldingsPage() {
                   <div className={styles.holdingRight}>
                     <p className={styles.holdingValue}>{formatPrice(h.evaluationAmount)}</p>
                     <p className={[styles.holdingRate, rateClass].join(" ")}>
-                      {h.profitAmount >= 0 ? "+" : ""}
-                      {formatPrice(Math.round(Math.abs(h.profitAmount)))} ({formatChangeRate(h.profitRate)})
+                      {h.profitLoss >= 0 ? "+" : ""}
+                      {formatPrice(Math.round(Math.abs(h.profitLoss)))} ({formatChangeRate(h.profitRate)})
                     </p>
                   </div>
                 </Link>
@@ -156,6 +163,56 @@ export default function HoldingsPage() {
         )}
       </section>
 
+      {/* 예약 주문 */}
+      {!loading && reservedOrders.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>예약 주문</h2>
+          <div className={styles.tradeList}>
+            {reservedOrders.map((o) => {
+              const isBuy = o.tradeType === "BUY";
+              const isPending = o.status === "PENDING";
+              const stockInfo = getStockInfo(o.ticker);
+              return (
+                <div key={o.id} className={styles.reservedItem}>
+                  <div className={styles.tradeLeft}>
+                    <span className={[styles.tradeBadge, isBuy ? styles.tradeBuy : styles.tradeSell].join(" ")}>
+                      {TRADE_TYPE_LABEL[o.tradeType]}
+                    </span>
+                    <div>
+                      <p className={styles.tradeTicker}>{stockInfo?.name ?? o.ticker}</p>
+                      <p className={styles.tradeDate}>
+                        {RESERVED_ORDER_TYPE_LABEL[o.orderType]}
+                        {o.targetPrice != null && ` · 목표가 ${formatPrice(o.targetPrice)}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.reservedRight}>
+                    <span className={[styles.reservedStatus, styles[`reservedStatus${o.status}`]].join(" ")}>
+                      {RESERVED_STATUS_LABEL[o.status]}
+                    </span>
+                    {isBuy && o.amount != null && (
+                      <p className={styles.tradeMeta}>{formatPrice(o.amount)}</p>
+                    )}
+                    {!isBuy && o.quantity != null && (
+                      <p className={styles.tradeMeta}>{o.quantity}주</p>
+                    )}
+                    {isPending && (
+                      <button
+                        className={styles.cancelBtn}
+                        onClick={() => void handleCancelReserved(o.id)}
+                        disabled={cancellingId === o.id}
+                      >
+                        {cancellingId === o.id ? "취소 중" : "취소"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* 거래 내역 */}
       {!loading && trades.length > 0 && (
         <section className={styles.section}>
@@ -163,6 +220,7 @@ export default function HoldingsPage() {
           <div className={styles.tradeList}>
             {trades.map((t) => {
               const isBuy = t.tradeType === "BUY";
+              const stockInfo = getStockInfo(t.ticker);
               return (
                 <div key={t.id} className={styles.tradeItem}>
                   <div className={styles.tradeLeft}>
@@ -170,7 +228,7 @@ export default function HoldingsPage() {
                       {TRADE_TYPE_LABEL[t.tradeType] ?? t.tradeType}
                     </span>
                     <div>
-                      <p className={styles.tradeTicker}>{t.ticker}</p>
+                      <p className={styles.tradeTicker}>{stockInfo?.name ?? t.ticker}</p>
                       <p className={styles.tradeDate}>{formatDateTime(t.createdAt)}</p>
                     </div>
                   </div>
@@ -182,6 +240,17 @@ export default function HoldingsPage() {
               );
             })}
           </div>
+          {!tradeIsLast && (
+            <button
+              className={styles.loadMoreBtn}
+              onClick={() => void handleLoadMoreTrades()}
+              disabled={tradeLoadingMore}
+            >
+              {tradeLoadingMore
+                ? <><RiLoaderLine size={14} className={styles.spinner} /> 불러오는 중</>
+                : "더 보기"}
+            </button>
+          )}
         </section>
       )}
 

@@ -1,5 +1,7 @@
 export type TradeType = "BUY" | "SELL";
-export type TradeStatus = "COMPLETED" | "FAILED" | "PENDING";
+export type TradeStatus = "PENDING" | "DONE" | "FAILED";
+export type ReservedOrderType = "LIMIT" | "RESERVATION";
+export type ReservedOrderStatus = "PENDING" | "EXECUTED" | "CANCELLED" | "FAILED";
 
 export interface AccountResponse {
   id: string;
@@ -10,13 +12,11 @@ export interface AccountResponse {
 
 export interface TradeBuyRequest {
   ticker: string;
-  price: number;
-  quantity: number;
+  amount: number;
 }
 
 export interface TradeSellRequest {
   ticker: string;
-  price: number;
   quantity: number;
 }
 
@@ -39,4 +39,30 @@ export interface HoldingResponse {
   quantity: number;
   averagePrice: number;
   totalAmount: number;
+}
+
+export interface ReservedBuyOrderRequest {
+  ticker: string;
+  orderType: ReservedOrderType;
+  targetPrice?: number;
+  amount: number;
+}
+
+export interface ReservedSellOrderRequest {
+  ticker: string;
+  orderType: ReservedOrderType;
+  targetPrice?: number;
+  quantity: number;
+}
+
+export interface ReservedOrderResponse {
+  id: string;
+  ticker: string;
+  orderType: ReservedOrderType;
+  tradeType: TradeType;
+  targetPrice: number | null;
+  amount: number | null;
+  quantity: number | null;
+  status: ReservedOrderStatus;
+  createdAt: string;
 }
