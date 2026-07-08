@@ -25,8 +25,6 @@ const CHART_TABS: { label: string; index: ChartIndex }[] = [
   { label: "3분", index: "MIN_3" },
   { label: "5분", index: "MIN_5" },
   { label: "10분", index: "MIN_10" },
-  { label: "30분", index: "MIN_30" },
-  { label: "60분", index: "MIN_60" },
 ];
 
 export default function StockDetailPage({ params }: Props) {
