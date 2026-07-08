@@ -105,7 +105,6 @@ export default function PortfolioPage() {
   const [holdingsRes, setHoldingsRes] = useState<PortfolioHoldingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [creating, setCreating] = useState(false);
 
   // AI 분석 상태
   const [aiOpen, setAiOpen] = useState(false);
@@ -259,15 +258,10 @@ export default function PortfolioPage() {
   const handleCreateAccount = async () => {
     setCreatingAccount(true);
     try {
-      await tradeApi.createAccount();
-      setNoAccount(false);
+      if (noAccount) await tradeApi.createAccount();
+      await portfolioApi.createPortfolio().catch(() => {});
+      await loadData();
     } catch { /* ignore */ } finally { setCreatingAccount(false); }
-  };
-
-  const handleCreate = async () => {
-    setCreating(true);
-    try { await portfolioApi.createPortfolio(); await loadData(); }
-    catch { /* ignore */ } finally { setCreating(false); }
   };
 
   const holdings = holdingsRes?.content ?? [];
@@ -327,31 +321,17 @@ export default function PortfolioPage() {
           <ServiceUnavailable message="포트폴리오 서비스가 일시적으로 불안정합니다" />
         </div>
       ) : assets === null ? (
-        noAccount ? (
-          <div className={styles.emptyWrap}>
-            <div className={styles.emptyIcon}>💳</div>
-            <h2 className={styles.emptyTitle}>먼저 계좌를 만들어보세요</h2>
-            <p className={styles.emptyDesc}>
-              모의 투자 계좌를 만들면 주식을 사고팔고<br />
-              포트폴리오를 관리할 수 있어요
-            </p>
-            <button className={styles.createBtn} onClick={handleCreateAccount} disabled={creatingAccount}>
-              {creatingAccount ? "생성 중..." : "계좌 만들기"}
-            </button>
-          </div>
-        ) : (
-          <div className={styles.emptyWrap}>
-            <div className={styles.emptyIcon}>📊</div>
-            <h2 className={styles.emptyTitle}>포트폴리오를 시작해보세요</h2>
-            <p className={styles.emptyDesc}>
-              포트폴리오를 생성하면 보유 종목의 수익률과<br />
-              자산 현황을 한눈에 확인할 수 있어요
-            </p>
-            <button className={styles.createBtn} onClick={handleCreate} disabled={creating}>
-              {creating ? "생성 중..." : "포트폴리오 만들기"}
-            </button>
-          </div>
-        )
+        <div className={styles.emptyWrap}>
+          <div className={styles.emptyIcon}>💳</div>
+          <h2 className={styles.emptyTitle}>먼저 계좌를 만들어보세요</h2>
+          <p className={styles.emptyDesc}>
+            계좌와 포트폴리오를 함께 생성하면<br />
+            주식 거래와 자산 현황을 바로 확인할 수 있어요
+          </p>
+          <button className={styles.createBtn} onClick={handleCreateAccount} disabled={creatingAccount}>
+            {creatingAccount ? <RiLoaderLine size={18} className={styles.spinner} /> : "계좌 · 포트폴리오 만들기"}
+          </button>
+        </div>
       ) : assets ? (
         <>
           {/* AI 포트폴리오 리포트 */}
