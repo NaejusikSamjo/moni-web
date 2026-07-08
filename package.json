@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@tosspayments/tosspayments-sdk": "^2.7.1",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "lightweight-charts": "^5.2.0",
     "next": "^16.2.7",
