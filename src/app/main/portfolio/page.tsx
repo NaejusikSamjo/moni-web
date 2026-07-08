@@ -126,14 +126,16 @@ export default function PortfolioPage() {
     setLoading(true);
     setError(false);
     try {
-      const assetRes = await portfolioApi.getAssets();
-      setAssets(assetRes);
-      if (!assetRes) {
-        const account = await tradeApi.getAccount();
-        setNoAccount(account === null);
+      const account = await tradeApi.getAccount();
+      if (!account) {
+        setNoAccount(true);
+        setAssets(null);
         return;
       }
       setNoAccount(false);
+      const assetRes = await portfolioApi.getAssets();
+      setAssets(assetRes);
+      if (!assetRes) return;
       const res = await portfolioApi.getHoldings();
       setHoldingsRes(res);
     } catch {
