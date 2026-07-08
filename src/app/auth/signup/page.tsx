@@ -244,7 +244,7 @@ export default function SignupPage() {
               onClick={handleEmailSignup}
               disabled={isBusy}
             >
-              {loading ? "처리 중..." : (
+              {loading ? <RiLoaderLine size={18} className={styles.spinner} /> : (
                 <>다음 <RiArrowRightLine size={16} /></>
               )}
             </Button>

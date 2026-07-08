@@ -460,7 +460,7 @@ export default function DashboardPage() {
               >
                 <div>
                   <p className={styles.feedCardTitle}>
-                    {creatingAccount ? "계좌 생성 중..." : "빠르게 모의투자 계좌 생성하기"}
+                    {creatingAccount ? "생성 중..." : "빠르게 모의투자 계좌 및 포트폴리오 생성하기"}
                   </p>
                   <p className={styles.feedCardDesc}>지금 바로 모의 투자를 시작해보세요</p>
                 </div>
