@@ -29,7 +29,7 @@
 - Next.js 16 App Router 기반 PWA — 홈 화면 추가 방식으로 모바일 앱처럼 사용
 - FSD(Feature-Sliced Design) 아키텍처로 레이어 간 의존성 명확하게 분리
 - OAuth 2.1 Authorization Code + PKCE 소셜 로그인 (Google · Kakao)
-- lightweight-charts 기반 실시간 분봉 차트 (LIVE 5초 자동 갱신)
+- lightweight-charts 기반 실시간 분봉 차트 (LIVE 10초 자동 갱신)
 - AI 기업이슈 분석 · 시장 뉴스 요약 (RAG, 백엔드 ai-service 연동)
 - Toss Payments SDK 기반 구독 결제
 
@@ -147,9 +147,15 @@ src/
 
 ### [종목 상세]
 
-- 실시간 분봉 차트(LIVE 5초 자동 갱신), AI 기업이슈 분석, 매수 · 매도 기능을 제공합니다.
+- 1 · 3 · 5 · 10분봉 차트를 lightweight-charts로 렌더링합니다.
+- **LIVE 버튼**을 켜면 10초마다 현재가를 자동 갱신합니다 (장중에만 활성화, KIS WebSocket 기반 Redis 캐시 조회로 백엔드 부하 최소화).
+- **시장가 즉시 매수·매도**: 현재가 기준으로 원하는 금액/수량을 입력해 즉시 체결합니다.
+- **지정가 예약 매수·매도**: 목표가를 지정하면 다음날 장 시작(오전 9시) 시점에 일괄 처리됩니다.
+- AI 기업이슈 분석 · 관련 뉴스 요약을 종목 상세 하단에서 확인할 수 있습니다.
 
-<!-- 스크린샷 준비중 -->
+| 종목 상세                                           |
+|-------------------------------------------------|
+| ![종목 상세](docs/images/pages/04-stock-detail.gif) |
 
 <br>
 
