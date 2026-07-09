@@ -495,7 +495,7 @@ export default function StockDetailPage({ params }: Props) {
 
       {stockReservedOrders.length > 0 && (() => {
         const first = stockReservedOrders[0];
-        const hhmm = new Date(first.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+        const hhmm = new Date(first.createdAt + "Z").toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
         const typeLabel = first.orderType === "LIMIT" ? "지정가" : "예약";
         const tradeLabel = first.tradeType === "BUY" ? "매수" : "매도";
         const rest = stockReservedOrders.length - 1;
@@ -605,7 +605,7 @@ export default function StockDetailPage({ params }: Props) {
             <h3 className={styles.modalTitle}>{stock.name} 예약 주문</h3>
             <div className={styles.reservedListWrap}>
               {stockReservedOrders.map((o) => {
-                const hhmm = new Date(o.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+                const hhmm = new Date(o.createdAt + "Z").toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
                 const typeLabel = o.orderType === "LIMIT" ? "지정가" : "예약";
                 const tradeLabel = o.tradeType === "BUY" ? "매수" : "매도";
                 const isBuy = o.tradeType === "BUY";
@@ -670,151 +670,155 @@ export default function StockDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className={styles.modalRow}>
-              <span className={styles.modalLabel}>현재가</span>
-              <div className={styles.modalValueGroup}>
-                <span className={styles.modalValue}>{formatPrice(tradePrice)}</span>
-                {isLive && <span className={styles.modalPriceNote}>실시간</span>}
-              </div>
-            </div>
-
-            {orderMode === "limit" && (
+            <div className={styles.modalBody}>
               <div className={styles.modalRow}>
-                <span className={styles.modalLabel}>목표가</span>
-                <input
-                  className={styles.amountInput}
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={limitTargetPrice}
-                  onChange={(e) => setLimitTargetPrice(e.target.value.replace(/[^\d.]/g, ""))}
-                />
+                <span className={styles.modalLabel}>현재가</span>
+                <div className={styles.modalValueGroup}>
+                  <span className={styles.modalValue}>{formatPrice(tradePrice)}</span>
+                  {isLive && <span className={styles.modalPriceNote}>실시간</span>}
+                </div>
               </div>
-            )}
 
-            {modalInfoLoading ? (
-              <div className={styles.modalLoadingRow}>
-                <RiLoaderLine size={18} className={styles.modalSpinner} />
-                <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
-              </div>
-            ) : (
-              <>
-                {showBuy && (
-                  <>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>가용 현금</span>
-                      <span className={styles.modalValue}>
-                        {cashBalance !== null ? formatPrice(cashBalance) : "—"}
-                      </span>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>보유 수량</span>
-                      <span className={styles.modalValue}>
-                        {holdingQty > 0 ? `${holdingQty}주` : "없음"}
-                      </span>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>수량</span>
-                      <div className={styles.qtyRow}>
-                        <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(-1)}>-</button>
-                        <span className={styles.qtyDisplay}>{toQtyStr(buyAmount, effectivePrice)}</span>
-                        <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(1)}>+</button>
-                      </div>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>투자 금액</span>
-                      <input
-                        className={styles.amountInput}
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0"
-                        value={buyAmount}
-                        onChange={(e) => setBuyAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {showSell && (
-                  <>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>가용 현금</span>
-                      <span className={styles.modalValue}>
-                        {cashBalance !== null ? formatPrice(cashBalance) : "—"}
-                      </span>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>보유 수량</span>
-                      <span className={styles.modalValue}>
-                        {holdingQty > 0 ? `${holdingQty}주` : "보유 없음"}
-                      </span>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>수량</span>
-                      <div className={styles.qtyRow}>
-                        <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(-1)}>-</button>
-                        <span className={styles.qtyDisplay}>{toQtyStr(sellAmount, effectivePrice)}</span>
-                        <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(1)}>+</button>
-                      </div>
-                    </div>
-                    <div className={styles.modalRow}>
-                      <span className={styles.modalLabel}>매도 금액</span>
-                      <input
-                        className={styles.amountInput}
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0"
-                        value={sellAmount}
-                        onChange={(e) => setSellAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                      />
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            <div className={styles.aiInModal}>
-              <div className={styles.aiInModalHeader}>
-                <p className={styles.aiInModalLabel}>AI 기업이슈 요약</p>
-                {aiStatus === "done" && aiAnalysis && (
-                  <span className={styles[`sentiment${aiAnalysis.sentiment}`]}>
-                    {aiAnalysis.sentiment === "POSITIVE" ? "긍정" : aiAnalysis.sentiment === "NEGATIVE" ? "부정" : "중립"}
-                  </span>
-                )}
-              </div>
-              {aiStatus === "loading" && (
-                <div className={styles.aiSkeletonWrap}>
-                  <div className={styles.aiSkeletonLine} />
-                  <div className={styles.aiSkeletonLine} data-w="85" />
-                  <div className={styles.aiSkeletonLine} data-w="70" />
+              {orderMode === "limit" && (
+                <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>목표가</span>
+                  <input
+                    className={styles.amountInput}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={limitTargetPrice}
+                    onChange={(e) => setLimitTargetPrice(e.target.value.replace(/[^\d.]/g, ""))}
+                  />
                 </div>
               )}
-              {aiStatus === "done" && aiAnalysis && (
-                <MarkdownText text={aiAnalysis.summary} className={styles.aiInModalText} />
+
+              {modalInfoLoading ? (
+                <div className={styles.modalLoadingRow}>
+                  <RiLoaderLine size={18} className={styles.modalSpinner} />
+                  <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
+                </div>
+              ) : (
+                <>
+                  {showBuy && (
+                    <>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>가용 현금</span>
+                        <span className={styles.modalValue}>
+                          {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                        </span>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>보유 수량</span>
+                        <span className={styles.modalValue}>
+                          {holdingQty > 0 ? `${holdingQty}주` : "없음"}
+                        </span>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>수량</span>
+                        <div className={styles.qtyRow}>
+                          <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(-1)}>-</button>
+                          <span className={styles.qtyDisplay}>{toQtyStr(buyAmount, effectivePrice)}</span>
+                          <button className={styles.qtyBtn} onClick={() => handleBuyQtyStep(1)}>+</button>
+                        </div>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>투자 금액</span>
+                        <input
+                          className={styles.amountInput}
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0"
+                          value={buyAmount}
+                          onChange={(e) => setBuyAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {showSell && (
+                    <>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>가용 현금</span>
+                        <span className={styles.modalValue}>
+                          {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                        </span>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>보유 수량</span>
+                        <span className={styles.modalValue}>
+                          {holdingQty > 0 ? `${holdingQty}주` : "보유 없음"}
+                        </span>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>수량</span>
+                        <div className={styles.qtyRow}>
+                          <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(-1)}>-</button>
+                          <span className={styles.qtyDisplay}>{toQtyStr(sellAmount, effectivePrice)}</span>
+                          <button className={styles.qtyBtn} onClick={() => handleSellAmtStep(1)}>+</button>
+                        </div>
+                      </div>
+                      <div className={styles.modalRow}>
+                        <span className={styles.modalLabel}>매도 금액</span>
+                        <input
+                          className={styles.amountInput}
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0"
+                          value={sellAmount}
+                          onChange={(e) => setSellAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
               )}
-              {aiStatus === "unsupported" && (
-                <p className={styles.aiUnsupported}>해당 종목은 지원되지 않는 종목입니다</p>
-              )}
+
+              <div className={styles.aiInModal}>
+                <div className={styles.aiInModalHeader}>
+                  <p className={styles.aiInModalLabel}>AI 기업이슈 요약</p>
+                  {aiStatus === "done" && aiAnalysis && (
+                    <span className={styles[`sentiment${aiAnalysis.sentiment}`]}>
+                      {aiAnalysis.sentiment === "POSITIVE" ? "긍정" : aiAnalysis.sentiment === "NEGATIVE" ? "부정" : "중립"}
+                    </span>
+                  )}
+                </div>
+                {aiStatus === "loading" && (
+                  <div className={styles.aiSkeletonWrap}>
+                    <div className={styles.aiSkeletonLine} />
+                    <div className={styles.aiSkeletonLine} data-w="85" />
+                    <div className={styles.aiSkeletonLine} data-w="70" />
+                  </div>
+                )}
+                {aiStatus === "done" && aiAnalysis && (
+                  <MarkdownText text={aiAnalysis.summary} className={styles.aiInModalText} />
+                )}
+                {aiStatus === "unsupported" && (
+                  <p className={styles.aiUnsupported}>해당 종목은 지원되지 않는 종목입니다</p>
+                )}
+              </div>
             </div>
 
-            {tradeError && <p className={styles.modalError}>{tradeError}</p>}
-            <Button
-              variant={showBuy ? "primary" : "outline"}
-              size="lg"
-              fullWidth
-              onClick={handleTrade}
-              disabled={
-                tradeLoading || modalInfoLoading ||
-                (showBuy && isBuyDisabled) ||
-                (showSell && isSellDisabled)
-              }
-            >
-              {tradeLoading
-                ? <RiLoaderLine size={20} className={styles.modalSpinner} />
-                : orderMode === "limit"
-                  ? (showBuy ? "지정가 매수" : "지정가 매도")
-                  : (showBuy ? "매수 주문" : "매도 주문")}
-            </Button>
+            <div className={styles.modalFooter}>
+              {tradeError && <p className={styles.modalError}>{tradeError}</p>}
+              <Button
+                variant={showBuy ? "primary" : "outline"}
+                size="lg"
+                fullWidth
+                onClick={handleTrade}
+                disabled={
+                  tradeLoading || modalInfoLoading ||
+                  (showBuy && isBuyDisabled) ||
+                  (showSell && isSellDisabled)
+                }
+              >
+                {tradeLoading
+                  ? <RiLoaderLine size={20} className={styles.modalSpinner} />
+                  : orderMode === "limit"
+                    ? (showBuy ? "지정가 매수" : "지정가 매도")
+                    : (showBuy ? "매수 주문" : "매도 주문")}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -840,59 +844,63 @@ export default function StockDetailPage({ params }: Props) {
               </button>
             </div>
 
-            {modalInfoLoading ? (
-              <div className={styles.modalLoadingRow}>
-                <RiLoaderLine size={18} className={styles.modalSpinner} />
-                <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
-              </div>
-            ) : (
-              <>
-                <div className={styles.modalRow}>
-                  <span className={styles.modalLabel}>가용 현금</span>
-                  <span className={styles.modalValue}>
-                    {cashBalance !== null ? formatPrice(cashBalance) : "—"}
-                  </span>
+            <div className={styles.modalBody}>
+              {modalInfoLoading ? (
+                <div className={styles.modalLoadingRow}>
+                  <RiLoaderLine size={18} className={styles.modalSpinner} />
+                  <span className={styles.modalLoadingText}>정보 불러오는 중...</span>
                 </div>
-                <div className={styles.modalRow}>
-                  <span className={styles.modalLabel}>보유 수량</span>
-                  <span className={styles.modalValue}>
-                    {holdingQty > 0 ? `${holdingQty}주` : "없음"}
-                  </span>
-                </div>
-                <div className={styles.modalRow}>
-                  <span className={styles.modalLabel}>수량</span>
-                  <div className={styles.qtyRow}>
-                    <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(-1)}>-</button>
-                    <span className={styles.qtyDisplay}>{toQtyStr(reservedAmount)}</span>
-                    <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(1)}>+</button>
+              ) : (
+                <>
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>가용 현금</span>
+                    <span className={styles.modalValue}>
+                      {cashBalance !== null ? formatPrice(cashBalance) : "—"}
+                    </span>
                   </div>
-                </div>
-                <div className={styles.modalRow}>
-                  <span className={styles.modalLabel}>
-                    {reservedTradeType === "BUY" ? "투자 금액" : "매도 금액"}
-                  </span>
-                  <input
-                    className={styles.amountInput}
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={reservedAmount}
-                    onChange={(e) => setReservedAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                  />
-                </div>
-              </>
-            )}
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>보유 수량</span>
+                    <span className={styles.modalValue}>
+                      {holdingQty > 0 ? `${holdingQty}주` : "없음"}
+                    </span>
+                  </div>
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>수량</span>
+                    <div className={styles.qtyRow}>
+                      <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(-1)}>-</button>
+                      <span className={styles.qtyDisplay}>{toQtyStr(reservedAmount)}</span>
+                      <button className={styles.qtyBtn} onClick={() => handleReservedAmtStep(1)}>+</button>
+                    </div>
+                  </div>
+                  <div className={styles.modalRow}>
+                    <span className={styles.modalLabel}>
+                      {reservedTradeType === "BUY" ? "투자 금액" : "매도 금액"}
+                    </span>
+                    <input
+                      className={styles.amountInput}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={reservedAmount}
+                      onChange={(e) => setReservedAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
 
-            {reservedError && <p className={styles.modalError}>{reservedError}</p>}
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={handleReservedOrder}
-              disabled={reservedLoading || modalInfoLoading || !Number(reservedAmount)}
-            >
-              {reservedLoading ? <RiLoaderLine size={20} className={styles.modalSpinner} /> : "예약 주문"}
-            </Button>
+            <div className={styles.modalFooter}>
+              {reservedError && <p className={styles.modalError}>{reservedError}</p>}
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={handleReservedOrder}
+                disabled={reservedLoading || modalInfoLoading || !Number(reservedAmount)}
+              >
+                {reservedLoading ? <RiLoaderLine size={20} className={styles.modalSpinner} /> : "예약 주문"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
