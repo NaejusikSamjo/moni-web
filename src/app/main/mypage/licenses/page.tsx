@@ -54,6 +54,13 @@ const LICENSES = [
     author: "Vercel, Inc.",
     url: "https://vercel.com/docs/speed-insights",
   },
+  {
+    name: "Vercel Analytics",
+    version: "2.0.1",
+    license: "MIT",
+    author: "Vercel, Inc.",
+    url: "https://vercel.com/docs/analytics",
+  },
 ];
 
 export default function LicensesPage() {
