@@ -774,12 +774,30 @@
 .modalSheet {
   background: white;
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  padding: 20px 20px 40px;
+  padding: 20px 20px 0;
   width: 100%;
   max-width: var(--max-width);
   max-height: 80dvh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: slideUp 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+
+.modalBody::-webkit-scrollbar {
+  display: none;
+}
+
+.modalFooter {
+  flex-shrink: 0;
+  padding: 12px 0 40px;
 }
 
 @keyframes slideUp {
